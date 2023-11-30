@@ -1,61 +1,102 @@
 #include "ground.hpp"
+#include <glm/fwd.hpp>
 
-void Ground::create(GLuint program) {
-  // Unit quad on the xz plane
-  std::array<glm::vec3, 4> vertices{{{-0.5f, 0.0f, +0.5f},
-                                     {-0.5f, 0.0f, -0.5f},
-                                     {+0.5f, 0.0f, +0.5f},
-                                     {+0.5f, 0.0f, -0.5f}}};
+void Ground::create(Model m_model, const std::string assetsPath) {
 
-  // Generate VBO
-  abcg::glGenBuffers(1, &m_VBO);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-  abcg::glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(),
-                     GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
+  groundProgram = abcg::createOpenGLProgram(
+      {{.source = assetsPath + "wall.vert", .stage = abcg::ShaderStage::Vertex},
+       {.source = assetsPath + "wall.frag",
+        .stage = abcg::ShaderStage::Fragment}});
 
-  // Create VAO and bind vertex attributes
-  abcg::glGenVertexArrays(1, &m_VAO);
-  abcg::glBindVertexArray(m_VAO);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-  auto const positionAttribute{
-      abcg::glGetAttribLocation(program, "inPosition")};
-  abcg::glEnableVertexAttribArray(positionAttribute);
-  abcg::glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, 0,
-                              nullptr);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-  abcg::glBindVertexArray(0);
+  // Carregamos os índices e vértices para a bola a partir do sphere.obj
+  m_model.loadObj(assetsPath + "ground.obj", &m_vertices, &m_indices, &m_VBO,
+                  &m_EBO);
 
-  // Save location of uniform variables
-  m_modelMatrixLoc = abcg::glGetUniformLocation(program, "modelMatrix");
-  m_colorLoc = abcg::glGetUniformLocation(program, "color");
+  // Inicializamos os buffers para a parede
+  m_model.setupVAO(groundProgram, &m_VBO, &m_EBO, &m_VAO);
+
+  groundViewMatrixLocation =
+      abcg::glGetUniformLocation(groundProgram, "viewMatrix");
+  groundProjMatrixLocation =
+      abcg::glGetUniformLocation(groundProgram, "projMatrix");
+
+  groundColorLocation = abcg::glGetUniformLocation(groundProgram, "color");
+
+  m_model.loadDiffuseTexture(assetsPath + "ground.png", &diffuseTexture);
 }
 
-void Ground::paint() {
-  abcg::glBindVertexArray(m_VAO);
-
-  // Draw a grid of 2N+1 x 2N+1 tiles on the xz plane, centered around the
-  // origin
-  auto const N{5};
-  for (auto const z : iter::range(-N, N + 1)) {
-    for (auto const x : iter::range(-N, N + 1)) {
-      // Set model matrix as a translation matrix
-      glm::mat4 model{1.0f};
-      model = glm::translate(model, glm::vec3(x, 0.0f, z));
-      abcg::glUniformMatrix4fv(m_modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
-
-      // Set color (checkerboard pattern)
-      auto const gray{(z + x) % 2 == 0 ? 1.0f : 0.5f};
-      abcg::glUniform4f(m_colorLoc, gray, gray, gray, 1.0f);
-
-      abcg::glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    }
-  }
-
-  abcg::glBindVertexArray(0);
+void Ground::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
+  // Acertamos a luz especular, "brilho", com a cor da luz incidente
+  lightPos = glm::vec4(LightPosParam, 0);
+  shininess = abs(LightPosParam.x);
+  Is = lightColorParam;
 }
 
 void Ground::destroy() {
+  abcg::glDeleteProgram(groundProgram);
+  abcg::glDeleteBuffers(1, &m_EBO);
   abcg::glDeleteBuffers(1, &m_VBO);
   abcg::glDeleteVertexArrays(1, &m_VAO);
+}
+
+void Ground::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model) {
+
+  abcg::glUseProgram(groundProgram);
+
+  // Localização das matrizes
+  auto const viewMatrixLoc{
+      abcg::glGetUniformLocation(groundProgram, "viewMatrix")};
+  auto const projMatrixLoc{
+      abcg::glGetUniformLocation(groundProgram, "projMatrix")};
+  auto const modelMatrixLoc{
+      abcg::glGetUniformLocation(groundProgram, "modelMatrix")};
+  auto const normalMatrixLoc{
+      abcg::glGetUniformLocation(groundProgram, "normalMatrix")};
+
+  auto const lightLoc{abcg::glGetUniformLocation(groundProgram, "lightPos")};
+
+  // Localização das propriedades de iluminação do sol
+  auto const shininessLoc{
+      abcg::glGetUniformLocation(groundProgram, "shininess")};
+  auto const IaLoc{abcg::glGetUniformLocation(groundProgram, "Ia")};
+  auto const IdLoc{abcg::glGetUniformLocation(groundProgram, "Id")};
+  auto const IsLoc{abcg::glGetUniformLocation(groundProgram, "Is")};
+  auto const KaLoc{abcg::glGetUniformLocation(groundProgram, "Ka")};
+  auto const KdLoc{abcg::glGetUniformLocation(groundProgram, "Kd")};
+  auto const KsLoc{abcg::glGetUniformLocation(groundProgram, "Ks")};
+
+  // Bind das propriedades
+  abcg::glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, &viewMatrix[0][0]);
+  abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, &projMatrix[0][0]);
+
+  // Propriedades da luz
+  abcg::glUniform4fv(lightLoc, 1, &lightPos.x);
+  abcg::glUniform4fv(IaLoc, 1, &Ia.x);
+  abcg::glUniform4fv(IdLoc, 1, &Id.x);
+  abcg::glUniform4fv(IsLoc, 1, &Is.x);
+  abcg::glUniform4fv(KaLoc, 1, &Ka.x);
+  abcg::glUniform4fv(KdLoc, 1, &Kd.x);
+  abcg::glUniform4fv(KsLoc, 1, &Ks.x);
+  abcg::glUniform1f(shininessLoc, shininess);
+
+  // Criamos um tapete de placas de 0,5 por 0,5 (ground.obj) com as translações
+  auto const N{5};
+  for (auto const z : iter::range(-N, N + 1)) {
+    for (auto const x : iter::range(-N - 3, N + 4)) {
+
+      glm::mat4 model{1.0f};
+      model = glm::translate(model, glm::vec3{x, 0.0f, z});
+
+      auto modelViewMatrix{glm::mat3(viewMatrix * model)};
+      auto normalMatrix{glm::inverseTranspose(modelViewMatrix)};
+      abcg::glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE,
+                               &normalMatrix[0][0]);
+
+      abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
+      abcg::glUniform4f(groundColorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
+
+      m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
+    }
+  }
+  abcg::glUseProgram(0);
 }

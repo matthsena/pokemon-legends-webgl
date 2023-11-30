@@ -12,12 +12,6 @@
 #include <unordered_map>
 #include <set>
 
-struct Vertex {
-  glm::vec3 position;
-
-  friend bool operator==(Vertex const &, Vertex const &) = default;
-};
-
 class Window : public abcg::OpenGLWindow {
 protected:
   void onEvent(SDL_Event const &event) override;
@@ -78,6 +72,8 @@ private:
   float m_dollySpeed{};
   float m_truckSpeed{};
   float m_panSpeed{};
+
+  Model m_model;
 
   Ground m_ground;
 

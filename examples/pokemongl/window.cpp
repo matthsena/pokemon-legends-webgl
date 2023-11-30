@@ -80,7 +80,7 @@ void Window::onCreate() {
                                  {.source = assetsPath + "lookat.frag",
                                   .stage = abcg::ShaderStage::Fragment}});
 
-  m_ground.create(m_program);
+  m_ground.create(m_model, assetsPath);
 
   // Get location of uniform variables
   m_viewMatrixLocation = abcg::glGetUniformLocation(m_program, "viewMatrix");
@@ -322,7 +322,7 @@ void Window::onPaint() {
   abcg::glBindVertexArray(0);
 
   // Draw ground
-  m_ground.paint();
+  m_ground.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
 
   abcg::glUseProgram(0);
 }
@@ -431,6 +431,10 @@ void Window::onUpdate() {
 
   // Atualiza a posição da Pokébola
   updatePokeballPosition();
+  glm::vec3 sunPosition{-1.0f, 1.5f, -6.5f};
+  glm::vec4 sunColor{1.0f, 1.0f, 0.0f, 1.0f};
+
+  m_ground.update(sunColor, sunPosition);
 }
 
 void Window::launchPokeball() {
