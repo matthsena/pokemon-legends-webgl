@@ -1,4 +1,5 @@
 #include "window.hpp"
+glm::vec2 m_miraPosition;
 
 // Explicit specialization of std::hash for Vertex
 template <> struct std::hash<Vertex> {
@@ -9,6 +10,16 @@ template <> struct std::hash<Vertex> {
 };
 
 void Window::onEvent(SDL_Event const &event) {
+  if (event.key.keysym.sym == SDLK_i) {
+    m_miraPosition.y -= 10.0f; // Mover para cima
+  }
+  if (event.key.keysym.sym == SDLK_k) {
+    m_miraPosition.y += 10.0f; // Mover para baixo
+  }
+  // Restrição para manter a mira na tela
+  m_miraPosition.y = std::max(m_miraPosition.y, 0.0f);
+  m_miraPosition.y = std::min(m_miraPosition.y, static_cast<float>(m_viewportSize.y));
+    
   if (event.type == SDL_KEYDOWN) {
     if (event.key.keysym.sym == SDLK_SPACE) {
       launchPokeball();
@@ -346,6 +357,27 @@ void Window::onPaintUI() {
     float windowWidth = ImGui::GetWindowWidth();
     float textWidth = 0;
 
+    // Desenhar a mira
+    {
+      float miraRadius = 10.0f; // Raio da mira
+      ImU32 miraColor = IM_COL32(255, 0, 0, 255); // Cor da mira (Vermelho)
+      float lineThickness = 2.0f; // Espessura da linha da mira
+
+      ImVec2 center(m_viewportSize.x / 2.0f, m_miraPosition.y);
+
+      ImGui::SetNextWindowPos(ImVec2(center.x - miraRadius, center.y - miraRadius), ImGuiCond_Always);
+      ImGui::SetNextWindowSize(ImVec2(miraRadius * 2, miraRadius * 2));
+      ImGui::SetNextWindowBgAlpha(0); // Janela transparente
+
+      ImGui::Begin("MiraWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
+      ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+      drawList->AddCircle(center, miraRadius, miraColor, 0, lineThickness);
+
+      ImGui::End();
+    }
+
+
     // https://stackoverflow.com/questions/64653747/how-to-center-align-text-horizontally
     if (m_currentState == PokemonState::Captured) {
       frameTimer += 1;
@@ -433,25 +465,39 @@ void Window::onUpdate() {
   updatePokeballPosition();
 }
 
+static constexpr float GRAVITY = -0.81f;
+
 void Window::launchPokeball() {
   if (!m_pokeballLaunched) {
     m_currentState = PokemonState::Live;
-
     fmt::print("Pokebola vai!\n");
-
     m_pokeballPosition = m_camera.getEyePosition();
 
-    glm::vec3 launchDirection =
-        glm::normalize(m_camera.getLookAtPoint() - m_camera.getEyePosition());
+    // Apenas uma declaração para cada variável
+    float miraOffsetY = (m_miraPosition.y - (m_viewportSize.y / 2.0f)) / m_viewportSize.y;
     float launchSpeed = 2.0f;
-    m_pokeballVelocity = launchDirection * launchSpeed;
+
+    // Obter a direção da câmera
+    glm::vec3 cameraDirection = glm::normalize(m_camera.getLookAtPoint() - m_camera.getEyePosition());
+
+    // Ajustar com base na posição da mira
+    glm::vec3 adjustedDirection = cameraDirection + glm::vec3(0, -miraOffsetY, 0);
+    m_pokeballVelocity = glm::normalize(adjustedDirection) * launchSpeed;
+
     m_pokeballLaunched = true;
+  
   }
 }
 
 void Window::updatePokeballPosition() {
   if (m_pokeballLaunched) {
     auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
+
+    // Atualize a componente vertical da velocidade devido à gravidade
+    m_pokeballVelocity.y += GRAVITY * deltaTime;
+
+    // Atualize a posição da pokebola
+    m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
     const float pokeballRadius = 0.1f;
     const float pokemonRadius = 0.5f;
