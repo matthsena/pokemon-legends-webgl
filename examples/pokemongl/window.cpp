@@ -358,24 +358,27 @@ void Window::onPaintUI() {
     float textWidth = 0;
 
     // Desenhar a mira
-    {
-      float miraRadius = 10.0f; // Raio da mira
-      ImU32 miraColor = IM_COL32(255, 0, 0, 255); // Cor da mira (Vermelho)
-      float lineThickness = 2.0f; // Espessura da linha da mira
+  {
+    float miraRadius = 10.0f;
+    ImU32 miraColor = IM_COL32(255, 0, 0, 255);
+    float lineThickness = 2.0f;
+    ImVec2 center(m_viewportSize.x / 2.0f, m_miraPosition.y);
 
-      ImVec2 center(m_viewportSize.x / 2.0f, m_miraPosition.y);
+    // Ajustar o tamanho da janela para garantir que a mira caiba completamente
+    ImVec2 windowSize = ImVec2(miraRadius * 4, miraRadius * 4);
+    ImVec2 windowPos = ImVec2(center.x - windowSize.x / 2, center.y - windowSize.y / 2);
 
-      ImGui::SetNextWindowPos(ImVec2(center.x - miraRadius, center.y - miraRadius), ImGuiCond_Always);
-      ImGui::SetNextWindowSize(ImVec2(miraRadius * 2, miraRadius * 2));
-      ImGui::SetNextWindowBgAlpha(0); // Janela transparente
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(windowSize);
+    ImGui::SetNextWindowBgAlpha(0);
 
-      ImGui::Begin("MiraWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
-      ImDrawList* drawList = ImGui::GetWindowDrawList();
+    ImGui::Begin("MiraWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-      drawList->AddCircle(center, miraRadius, miraColor, 0, lineThickness);
+    drawList->AddCircle(center, miraRadius, miraColor, 0, lineThickness);
 
-      ImGui::End();
-    }
+    ImGui::End();
+  }
 
 
     // https://stackoverflow.com/questions/64653747/how-to-center-align-text-horizontally
