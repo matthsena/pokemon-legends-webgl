@@ -12,7 +12,8 @@
 #include <unordered_map>
 #include <set>
 
-class Window : public abcg::OpenGLWindow {
+class Window : public abcg::OpenGLWindow
+{
 protected:
   void onEvent(SDL_Event const &event) override;
   void onCreate() override;
@@ -23,7 +24,8 @@ protected:
   void onUpdate() override;
 
 private:
-  struct Pokemon {
+  struct Pokemon
+  {
     GLuint m_vao{};
     GLuint m_vbo{};
     GLuint m_ebo{};
@@ -35,7 +37,6 @@ private:
     glm::vec3 m_position{0, 0, 0};
   };
 
-
   std::unordered_map<std::string, Pokemon> m_pokemons_list;
   std::vector<std::string> m_modelPaths = {"charmander.obj", "bulbasaur.obj"};
 
@@ -45,7 +46,6 @@ private:
 
   bool m_showPokedex{false};
   bool m_restarted{false};
-
 
   glm::ivec2 m_viewportSize{};
 
@@ -58,6 +58,10 @@ private:
   GLuint m_VAO_pokeball{};
   GLuint m_VBO_pokeball{};
   GLuint m_EBO_pokeball{};
+
+  GLuint m_VAO_sun{};
+  GLuint m_VBO_sun{};
+  GLuint m_EBO_sun{};
 
   GLuint m_program{};
 
@@ -83,6 +87,9 @@ private:
   std::vector<Vertex> m_vertices_pokeball;
   std::vector<GLuint> m_indices_pokeball;
 
+  std::vector<Vertex> m_vertices_sun;
+  std::vector<GLuint> m_indices_sun;
+
   // void loadModelFromFile(std::string_view path);
 
   std::tuple<std::vector<Vertex>, std::vector<GLuint>>
@@ -93,7 +100,12 @@ private:
   glm::vec3 m_pokeballVelocity{};
   bool m_pokeballLaunched{false};
 
-  enum class PokemonState { Captured, Escaped, Live };
+  enum class PokemonState
+  {
+    Captured,
+    Escaped,
+    Live
+  };
   PokemonState m_currentState{PokemonState::Live};
 
   void launchPokeball();
@@ -102,6 +114,8 @@ private:
 
   void backToLive();
   void restartGame();
+
+  std::tuple<std::vector<Vertex>, std::vector<GLuint>> createSphere(float radius, unsigned int sectors, unsigned int stacks);
 
   int frameTimer{0};
 };
