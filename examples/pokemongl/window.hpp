@@ -6,6 +6,7 @@
 #include "camera.hpp"
 #include "ground.hpp"
 #include "pokemon.hpp"
+#include "pokeball.hpp"
 
 #include <chrono>
 #include <random>
@@ -49,10 +50,6 @@ private:
   GLuint m_VBO_pokeball{};
   GLuint m_EBO_pokeball{};
 
-  GLuint m_VAO_sun{};
-  GLuint m_VBO_sun{};
-  GLuint m_EBO_sun{};
-
   GLuint m_program{};
 
   std::default_random_engine m_randomEngine;
@@ -73,16 +70,13 @@ private:
 
   Pokemon m_pokemon_render;
 
+  Pokeball m_pokeball_render;
+
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
 
   std::vector<Vertex> m_vertices_pokeball;
   std::vector<GLuint> m_indices_pokeball;
-
-  std::vector<Vertex> m_vertices_sun;
-  std::vector<GLuint> m_indices_sun;
-
-  // void loadModelFromFile(std::string_view path);
 
   std::tuple<std::vector<Vertex>, std::vector<GLuint>>
   loadModelFromFile(std::string_view path);

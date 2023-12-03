@@ -92,6 +92,9 @@ void Window::onCreate()
                                   .stage = abcg::ShaderStage::Fragment}});
 
   m_ground.create(m_model, assetsPath);
+
+  m_pokeball_render.create(m_model, assetsPath, glm::vec3(0.0f, 0.5f, 2.5f));
+  fmt::print("Posicoes da camera: x: {}, y: {}, z: {}\n", m_camera.getEyePosition().x, m_camera.getEyePosition().y, m_camera.getEyePosition().z);
   // m_pokemon_render.create(m_model, assetsPath);
 
   // Get location of uniform variables
@@ -99,47 +102,6 @@ void Window::onCreate()
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
-
-  // build sun
-  auto [vertices_sun, indices_sun] = createSphere(1.0f, 30, 30);
-  m_vertices_sun = vertices_sun;
-  m_indices_sun = indices_sun;
-
-  // Generate VBO
-  abcg::glGenBuffers(1, &m_VBO_sun);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO_sun);
-  abcg::glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(m_vertices_sun.at(0)) *
-                         m_vertices_sun.size(),
-                     m_vertices_sun.data(), GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  // Generate EBO
-  abcg::glGenBuffers(1, &m_EBO_sun);
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_sun);
-  abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     sizeof(m_indices_sun.at(0)) *
-                         m_indices_sun.size(),
-                     m_indices_sun.data(), GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-  // Create VAO
-  abcg::glGenVertexArrays(1, &m_VAO_sun);
-
-  // Bind vertex attributes to current VAO
-  abcg::glBindVertexArray(m_VAO_sun);
-
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO_sun);
-  auto const positionAttribute_sun{
-      abcg::glGetAttribLocation(m_program, "inPosition")};
-  abcg::glEnableVertexAttribArray(positionAttribute_sun);
-  abcg::glVertexAttribPointer(positionAttribute_sun, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(Vertex), nullptr);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_sun);
-
-  abcg::glBindVertexArray(0);
 
   // build pokeball
   auto const [vertices_pokeball, indices_pokeball] =
@@ -313,19 +275,9 @@ void Window::onPaint()
 
   abcg::glBindVertexArray(0);
 
-  // Draw sun
-  glm::mat4 model_sun = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 2.5f, -6.5f));
-  model_sun = glm::scale(model_sun, glm::vec3(1.0f));
-
-  abcg::glBindVertexArray(m_VAO_sun);
-  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model_sun[0][0]);
-  abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
-  abcg::glDrawElements(GL_TRIANGLES, m_indices_sun.size(), GL_UNSIGNED_INT, nullptr);
-
-  abcg::glBindVertexArray(0);
-
   // Draw ground
   m_ground.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
+  m_pokeball_render.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
 
   abcg::glUseProgram(0);
 }
@@ -429,6 +381,7 @@ void Window::onDestroy()
 {
   m_ground.destroy();
   m_pokemon_render.destroy();
+  m_pokeball_render.destroy();
 
   abcg::glDeleteProgram(m_program);
   abcg::glDeleteBuffers(1, &m_EBO);
