@@ -27,7 +27,7 @@ protected:
   void onUpdate() override;
 
 private:
-  std::vector<Pokemon> pokemons_spawned;
+  std::vector<Pokemon> pokemons_spawned; // pokemons que já foram spawnados
 
   std::vector<std::string> m_modelPaths = {"pokemons/Charmander.obj", "pokemons/Bulbasaur.obj"};
 

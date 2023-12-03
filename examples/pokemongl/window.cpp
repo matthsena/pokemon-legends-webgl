@@ -27,8 +27,6 @@ void Window::onEvent(SDL_Event const &event)
 
     if (event.key.keysym.sym == SDLK_r)
     {
-      // std::thread restartGameThread(&Window::restartGame, this);
-      // restartGameThread.detach();
       restartGame();
     }
 
