@@ -10,17 +10,19 @@ class Pokeball
 public:
   void create(Model m_model, const std::string assetsPath, glm::vec3 position);
   void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model);
+  void update(bool pokeballLaunched, glm::vec3 velocity);
   void destroy();
 
   bool getPokemonCaptured();
   void setPokemonCaptured(bool captured);
 
-
-  // Nome do pokemon
-  std::string getPokemonName() const { return m_pokemonName; }
-  void setPokemonName(std::string name);
+  void setPosition(glm::vec3 position) { m_position = position; }
+  glm::vec3 getPosition() const { return m_position; }
 
 private:
+  bool m_pokeballLaunched{false};
+  float width, height, depth{0};
+
   GLuint m_VAO{};
   GLuint m_VBO{};
   GLuint m_EBO{};
@@ -46,7 +48,6 @@ private:
   // propriedades do pokemonm
   bool m_captured{false};
   glm::vec3 m_position;
-  std::string m_pokemonName;
 };
 
 #endif

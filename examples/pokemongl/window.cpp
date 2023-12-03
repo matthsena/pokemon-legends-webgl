@@ -401,7 +401,9 @@ void Window::onUpdate()
   glm::vec3 sunPosition{-1.0f, 2.5f, -6.5f};
   glm::vec4 sunColor{1.0f, 1.0f, 0.0f, 1.0f};
 
-  m_ground.update(sunColor, sunPosition);
+  // if (m_pokeballLaunched === true) {
+  //   m_pokeball_render.update(m_pokeballLaunched, m_pokeballPosition);
+  // }
 }
 
 void Window::launchPokeball()
@@ -413,6 +415,7 @@ void Window::launchPokeball()
     fmt::print("Pokebola vai!\n");
 
     m_pokeballPosition = m_camera.getEyePosition();
+    m_pokeball_render.update(m_pokeballLaunched, m_pokeballPosition);
 
     glm::vec3 launchDirection =
         glm::normalize(m_camera.getLookAtPoint() - m_camera.getEyePosition());
@@ -433,6 +436,8 @@ void Window::updatePokeballPosition()
 
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
+    m_pokeball_render.update(m_pokeballLaunched, m_pokeballPosition);
+
     // Verifica se saiu da tela
     if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
         (m_pokeballPosition.x - pokeballRadius) > 5.0f ||
@@ -441,6 +446,7 @@ void Window::updatePokeballPosition()
     {
       m_pokeballLaunched = false;
       fmt::print("Pokebola parou!\n");
+      m_pokeball_render.update(m_pokeballLaunched, m_camera.getEyePosition());
     }
 
     // Verifica se colidiu com algum pokemon
@@ -454,6 +460,8 @@ void Window::updatePokeballPosition()
         {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon!\n");
+          m_pokeball_render.update(m_pokeballLaunched, m_camera.getEyePosition());
+
           // probabilidade de captura 45%
           std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
 

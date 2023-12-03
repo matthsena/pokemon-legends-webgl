@@ -9,7 +9,7 @@ void Pokeball::create(Model m_model, const std::string assetsPath, glm::vec3 pos
           .stage = abcg::ShaderStage::Fragment}});
 
     // Carregamos os índices e vértices para a bola a partir do sphere.obj
-    m_model.loadObj(assetsPath +  "pokeball.obj", &m_vertices, &m_indices, &m_VBO,
+    m_model.loadObj(assetsPath + "pokeball.obj", &m_vertices, &m_indices, &m_VBO,
                     &m_EBO);
 
     // Inicializamos os buffers para a parede
@@ -31,7 +31,7 @@ void Pokeball::create(Model m_model, const std::string assetsPath, glm::vec3 pos
     // {
     //     min_height = std::min(min_height, vertex.position.y);
     // }
-    
+
     // pega o tamanho do modelo em x e y
     float min_x = m_vertices[0].position.x;
     float max_x = m_vertices[0].position.x;
@@ -54,11 +54,11 @@ void Pokeball::create(Model m_model, const std::string assetsPath, glm::vec3 pos
         max_z = std::max(max_z, vertex.position.z);
     }
 
-    float width = max_x - min_x;
-    float height = max_y - min_y;
-    float depth = max_z - min_z;
+    width = max_x - min_x;
+    height = max_y - min_y;
+    depth = max_z - min_z;
 
-    m_position = glm::vec3(position.x, position.y - (height * 0.2), position.z - depth/3);
+    m_position = glm::vec3(position.x, position.y - (height * 0.2), position.z - depth / 3);
 }
 
 void Pokeball::destroy()
@@ -77,6 +77,12 @@ bool Pokeball::getPokemonCaptured()
 void Pokeball::setPokemonCaptured(bool captured)
 {
     m_captured = captured;
+}
+
+void Pokeball::update(bool pokeballLaunched, glm::vec3 position)
+{
+    m_pokeballLaunched = pokeballLaunched;
+    m_position = position;
 }
 
 void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
@@ -125,7 +131,7 @@ void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
     glm::mat4 model{1.0f};
     // Ajuste a posição do modelo no eixo Y para que ele esteja rente ao chão
     model = glm::translate(model, m_position);
-    model = glm::scale(model, glm::vec3(0.3f));
+    model = glm::scale(model, glm::vec3(0.1f));
     // deixando a pokebola virada para o lado que vai ser lancada
     model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
 
