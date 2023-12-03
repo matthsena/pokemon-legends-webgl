@@ -46,10 +46,6 @@ private:
   GLuint m_VBO{};
   GLuint m_EBO{};
 
-  GLuint m_VAO_pokeball{};
-  GLuint m_VBO_pokeball{};
-  GLuint m_EBO_pokeball{};
-
   GLuint m_program{};
 
   std::default_random_engine m_randomEngine;

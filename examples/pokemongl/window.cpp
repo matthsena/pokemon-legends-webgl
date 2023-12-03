@@ -101,48 +101,6 @@ void Window::onCreate()
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
 
-  // build pokeball
-  auto const [vertices_pokeball, indices_pokeball] =
-      loadModelFromFile(assetsPath + "pokeball.obj");
-  m_vertices_pokeball = vertices_pokeball;
-  m_indices_pokeball = indices_pokeball;
-
-  // Generate VBO
-  abcg::glGenBuffers(1, &m_VBO_pokeball);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO_pokeball);
-  abcg::glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(m_vertices_pokeball.at(0)) *
-                         m_vertices_pokeball.size(),
-                     m_vertices_pokeball.data(), GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  // Generate EBO
-  abcg::glGenBuffers(1, &m_EBO_pokeball);
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_pokeball);
-  abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     sizeof(m_indices_pokeball.at(0)) *
-                         m_indices_pokeball.size(),
-                     m_indices_pokeball.data(), GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-  // Create VAO
-  abcg::glGenVertexArrays(1, &m_VAO_pokeball);
-
-  // Bind vertex attributes to current VAO
-  abcg::glBindVertexArray(m_VAO_pokeball);
-
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO_pokeball);
-  auto const positionAttribute_pokeball{
-      abcg::glGetAttribLocation(m_program, "inPosition")};
-  abcg::glEnableVertexAttribArray(positionAttribute_pokeball);
-  abcg::glVertexAttribPointer(positionAttribute_pokeball, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(Vertex), nullptr);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_pokeball);
-
-  abcg::glBindVertexArray(0);
-
   // Definindo posição inicial dos pokemons
   m_randomEngine.seed(
       std::chrono::steady_clock::now().time_since_epoch().count());
@@ -249,26 +207,6 @@ void Window::onPaint()
   {
     if (pokemon.getPokemonCaptured() == false)
       pokemon.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
-  }
-
-  // DRAW Pokeball
-  if (m_pokeballLaunched == true)
-  {
-
-    abcg::glBindVertexArray(m_VAO_pokeball);
-
-    // model = glm::mat4(1.0);
-    glm::mat4 model_pokeball{1.0f};
-    model_pokeball = glm::translate(model_pokeball, m_pokeballPosition);
-    model_pokeball =
-        glm::rotate(model_pokeball, glm::radians(90.0f), glm::vec3(0, 1, 0));
-    model_pokeball = glm::scale(model_pokeball, glm::vec3(0.002f));
-
-    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
-                             &model_pokeball[0][0]);
-    abcg::glUniform4f(m_colorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-    abcg::glDrawElements(GL_TRIANGLES, m_indices_pokeball.size(),
-                         GL_UNSIGNED_INT, nullptr);
   }
 
   abcg::glBindVertexArray(0);
@@ -400,10 +338,6 @@ void Window::onUpdate()
   updatePokeballPosition();
   glm::vec3 sunPosition{-1.0f, 2.5f, -6.5f};
   glm::vec4 sunColor{1.0f, 1.0f, 0.0f, 1.0f};
-
-  // if (m_pokeballLaunched === true) {
-  //   m_pokeball_render.update(m_pokeballLaunched, m_pokeballPosition);
-  // }
 }
 
 void Window::launchPokeball()
