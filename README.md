@@ -95,7 +95,7 @@ Também foram definidas as setas e as teclas AWSD para o comando de movimentaç�
     if (m_modelPaths[i] == "charmander.obj") {
       color = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f);
       name = "Charmander";
-    } else if (m_modelPaths[i] == "bulbasaur.obj") {
+    } else if (m_modelPaths[i] == "Bulbasaur.obj") {
       color = glm::vec4(0.2f, 0.6f, 0.3f, 1.0f);
       name = "Bulbasaur";
     }

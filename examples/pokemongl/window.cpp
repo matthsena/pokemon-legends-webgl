@@ -72,7 +72,7 @@ void Window::onCreate()
   auto const &assetsPath{abcg::Application::getAssetsPath()};
 
   // Load a new font
-  auto const filename{assetsPath + "Inconsolata-Medium.ttf"};
+  auto const filename{assetsPath + "fonts/Inconsolata-Medium.ttf"};
   m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(filename.c_str(), 30.0f);
   if (m_font == nullptr)
   {
@@ -86,81 +86,19 @@ void Window::onCreate()
 
   // Create program
   m_program =
-      abcg::createOpenGLProgram({{.source = assetsPath + "lookat.vert",
+      abcg::createOpenGLProgram({{.source = assetsPath + "shaders/lookat.vert",
                                   .stage = abcg::ShaderStage::Vertex},
-                                 {.source = assetsPath + "lookat.frag",
+                                 {.source = assetsPath + "shaders/lookat.frag",
                                   .stage = abcg::ShaderStage::Fragment}});
-                                  
+
   m_ground.create(m_model, assetsPath);
+  // m_pokemon_render.create(m_model, assetsPath);
 
   // Get location of uniform variables
   m_viewMatrixLocation = abcg::glGetUniformLocation(m_program, "viewMatrix");
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
-
-  for (size_t i = 0; i < m_modelPaths.size(); i++)
-  {
-    auto color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    std::string name = "";
-
-    if (m_modelPaths[i] == "charmander.obj")
-    {
-      color = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f);
-      name = "Charmander";
-    }
-    else if (m_modelPaths[i] == "bulbasaur.obj")
-    {
-      color = glm::vec4(0.2f, 0.6f, 0.3f, 1.0f);
-      name = "Bulbasaur";
-    }
-
-    auto const [vertices_pokemon, indices_pokemon] =
-        loadModelFromFile(assetsPath + m_modelPaths[i]);
-
-    GLuint tmp_VAO{};
-    GLuint tmp_VBO{};
-    GLuint tmp_EBO{};
-
-    // Generate VBO
-    abcg::glGenBuffers(1, &tmp_VBO);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
-    abcg::glBufferData(GL_ARRAY_BUFFER,
-                       sizeof(vertices_pokemon.at(0)) * vertices_pokemon.size(),
-                       vertices_pokemon.data(), GL_STATIC_DRAW);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // Generate EBO
-    abcg::glGenBuffers(1, &tmp_EBO);
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
-    abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                       sizeof(indices_pokemon.at(0)) * indices_pokemon.size(),
-                       indices_pokemon.data(), GL_STATIC_DRAW);
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // Create VAO
-    abcg::glGenVertexArrays(1, &tmp_VAO);
-
-    // Bind vertex attributes to current VAO
-    abcg::glBindVertexArray(tmp_VAO);
-
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
-    auto const positionAttribute{
-        abcg::glGetAttribLocation(m_program, "inPosition")};
-    abcg::glEnableVertexAttribArray(positionAttribute);
-    abcg::glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE,
-                                sizeof(Vertex), nullptr);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
-
-    // End of binding to current VAO
-    abcg::glBindVertexArray(0);
-
-    m_pokemons_list[m_modelPaths[i]] =
-        Pokemon{tmp_VAO, tmp_VBO, tmp_EBO, vertices_pokemon,
-                indices_pokemon, color, name};
-  }
 
   // build sun
   auto [vertices_sun, indices_sun] = createSphere(1.0f, 30, 30);
@@ -255,9 +193,13 @@ void Window::onCreate()
   // inicializando pokemons
   for (int i = 0; i < m_num_pokemons; ++i)
   {
-    m_pokemon[i] = m_pokemons_list[m_modelPaths[rd_poke_model(m_randomEngine)]];
-    m_pokemon[i].m_position = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                        rd_poke_position(m_randomEngine));
+    std::string objFile = m_modelPaths[rd_poke_model(m_randomEngine)];
+    glm::vec3 position = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                   rd_poke_position(m_randomEngine));
+    Pokemon pokemon;
+    pokemon.create(m_model, assetsPath, objFile, position);
+
+    pokemons_spawned.push_back(pokemon);
   }
 }
 
@@ -342,29 +284,11 @@ void Window::onPaint()
   abcg::glUniformMatrix4fv(m_projMatrixLocation, 1, GL_FALSE,
                            &m_camera.getProjMatrix()[0][0]);
 
-  // renderizando cada pokemon
-  for (int i = 0; i < m_num_pokemons; ++i)
+  // interate pokemons_spawned
+  for (auto &pokemon : pokemons_spawned)
   {
-    auto selectedPokemon = m_pokemon[i];
-
-    abcg::glBindVertexArray(selectedPokemon.m_vao);
-
-    glm::mat4 model{1.0f};
-    // renderizacao condicional caso nao tenha sido capturado
-    if (selectedPokemon.m_captured == false)
-    {
-      model = glm::translate(model, selectedPokemon.m_position);
-      model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
-      model = glm::scale(model, glm::vec3(0.02f));
-
-      abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
-                               &model[0][0]);
-      abcg::glUniform4f(m_colorLocation, selectedPokemon.m_color.r,
-                        selectedPokemon.m_color.g, selectedPokemon.m_color.b,
-                        selectedPokemon.m_color.a);
-      abcg::glDrawElements(GL_TRIANGLES, selectedPokemon.m_indices.size(),
-                           GL_UNSIGNED_INT, nullptr);
-    }
+    if (pokemon.getPokemonCaptured() == false)
+      pokemon.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
   }
 
   // DRAW Pokeball
@@ -504,6 +428,7 @@ void Window::onResize(glm::ivec2 const &size)
 void Window::onDestroy()
 {
   m_ground.destroy();
+  m_pokemon_render.destroy();
 
   abcg::glDeleteProgram(m_program);
   abcg::glDeleteBuffers(1, &m_EBO);
@@ -524,7 +449,7 @@ void Window::onUpdate()
   updatePokeballPosition();
   glm::vec3 sunPosition{-1.0f, 2.5f, -6.5f};
   glm::vec4 sunColor{1.0f, 1.0f, 0.0f, 1.0f};
-  
+
   m_ground.update(sunColor, sunPosition);
 }
 
@@ -568,24 +493,23 @@ void Window::updatePokeballPosition()
     }
 
     // Verifica se colidiu com algum pokemon
-    for (int i = 0; i < m_num_pokemons; ++i)
+    for (auto &pokemon : pokemons_spawned)
     {
-      if (!m_pokemon[i].m_captured)
+      if (pokemon.getPokemonCaptured() == false)
       {
-        float distance =
-            glm::distance(m_pokeballPosition, m_pokemon[i].m_position);
+        float distance = glm::distance(m_pokeballPosition, pokemon.getPosition());
 
         if ((distance - pokemonRadius - pokeballRadius) < 0.02f)
         {
           // Colisão detectada
-          fmt::print("Pokébola colidiu com Pokémon {}!\n", i + 1);
+          fmt::print("Pokébola colidiu com Pokémon!\n");
           // probabilidade de captura 45%
           std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
 
           if (rd_poke_capture(m_randomEngine) < 0.45f)
           {
-            m_pokemon[i].m_captured = true;
-            m_pokedex_pokemons.insert(m_pokemon[i].m_name);
+            pokemon.setPokemonCaptured(true);
+            m_pokedex_pokemons.insert(pokemon.getPokemonName());
 
             m_currentState = PokemonState::Captured;
           }
@@ -612,19 +536,20 @@ void Window::restartGame()
 {
   std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
 
-  for (int i = 0; i < m_num_pokemons; ++i)
+  for (auto &pokemon : pokemons_spawned)
   {
-    m_pokemon[i].m_captured = false;
-    m_pokemon[i].m_position = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                        rd_poke_position(m_randomEngine));
+    pokemon.setPokemonCaptured(false);
+    pokemon.setPosition(glm::vec3(rd_poke_position(m_randomEngine), pokemon.getPosition().y,
+                                  rd_poke_position(m_randomEngine)));
+
+    m_pokeballLaunched = false;
+    m_pokedex_pokemons.clear();
+
+    m_showPokedex = false;
+
+    m_restarted = true;
+    frameTimer = 0.0f;
   }
-  m_pokeballLaunched = false;
-  m_pokedex_pokemons.clear();
-
-  m_showPokedex = false;
-
-  m_restarted = true;
-  frameTimer = 0.0f;
 }
 
 // SOL PROCEDURAL

@@ -4,8 +4,8 @@
 void Ground::create(Model m_model, const std::string assetsPath) {
 
   groundProgram = abcg::createOpenGLProgram(
-      {{.source = assetsPath + "wall.vert", .stage = abcg::ShaderStage::Vertex},
-       {.source = assetsPath + "wall.frag",
+      {{.source = assetsPath + "shaders/texture.vert", .stage = abcg::ShaderStage::Vertex},
+       {.source = assetsPath + "shaders/texture.frag",
         .stage = abcg::ShaderStage::Fragment}});
 
   // Carregamos os índices e vértices para a bola a partir do sphere.obj

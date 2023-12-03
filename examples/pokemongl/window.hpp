@@ -5,6 +5,8 @@
 
 #include "camera.hpp"
 #include "ground.hpp"
+#include "pokemon.hpp"
+
 #include <chrono>
 #include <random>
 // #include <thread>
@@ -24,24 +26,12 @@ protected:
   void onUpdate() override;
 
 private:
-  struct Pokemon
-  {
-    GLuint m_vao{};
-    GLuint m_vbo{};
-    GLuint m_ebo{};
-    std::vector<Vertex> m_vertices;
-    std::vector<GLuint> m_indices;
-    glm::vec4 m_color{};
-    std::string m_name{};
-    bool m_captured{false};
-    glm::vec3 m_position{0, 0, 0};
-  };
+  std::vector<Pokemon> pokemons_spawned;
 
-  std::unordered_map<std::string, Pokemon> m_pokemons_list;
-  std::vector<std::string> m_modelPaths = {"charmander.obj", "bulbasaur.obj"};
+  std::vector<std::string> m_modelPaths = {"pokemons/Charmander.obj", "pokemons/Bulbasaur.obj"};
 
   int m_num_pokemons{5};
-  Pokemon m_pokemon[5];
+  
   std::set<std::string> m_pokedex_pokemons;
 
   bool m_showPokedex{false};
@@ -80,6 +70,8 @@ private:
   Model m_model;
 
   Ground m_ground;
+
+  Pokemon m_pokemon_render;
 
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
