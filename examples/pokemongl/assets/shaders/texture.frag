@@ -53,8 +53,12 @@ vec4 BlinnPhong(vec3 N, vec3 L, vec3 V, vec2 texCoord) {
 }
 
 // Planar mapping
-vec2 PlanarMappingX(vec3 P) { return vec2(1.0 - P.z, P.y); }
-vec2 PlanarMappingY(vec3 P) { return vec2(P.x, 1.0 - P.z); }
+// ALTERADO POR MOTIVOS: EXEMPLO A POKEBOLA
+//vec2 PlanarMappingX(vec3 P) { return vec2(1.0 - P.z, P.y); }
+//vec2 PlanarMappingY(vec3 P) { return vec2(P.x, 1.0 - P.z); }
+
+vec2 PlanarMappingX(vec3 P) { return vec2(P.x, P.y); }
+vec2 PlanarMappingY(vec3 P) { return vec2(P.x, P.y); }
 vec2 PlanarMappingZ(vec3 P) { return P.xy; }
 
 void main() {

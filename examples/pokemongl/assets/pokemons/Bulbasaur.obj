@@ -1,6 +1,6 @@
 # Aspose.3D Wavefront OBJ Exporter
 # Copyright 2004-2023 Aspose Pty Ltd.
-# File created: 11/12/2023 16:36:26
+# File created: 12/02/2023 22:33:34
 
 #
 # object Bulbasaur
@@ -19280,7 +19280,6 @@ vt 0.7640960216522216 2.6152400970458984 0
 # 2985 texture coords
 
 g Bulbasaur
-usemtl Material #10
 s 1
 f 1/1/1 2/2/2 3/3/3
 f 3/3/4 2/2/5 4/4/6
@@ -25476,7 +25475,6 @@ vt 0.9283329844474792 1.45703005790710448 0
 # 248 texture coords
 
 g Bulbasaur_LVine
-usemtl Material #10
 s 2
 f 2399/2986/13885 2400/2987/13886 2401/2988/13887
 f 2399/2986/13888 2402/2989/13889 2400/2987/13890
@@ -27416,7 +27414,6 @@ vt 0.07166700065135956 1.45703005790710448 0
 # 248 texture coords
 
 g Bulbasaur_RVine
-usemtl Material #10
 s 4
 f 2587/3234/15001 2588/3235/15002 2589/3236/15003
 f 2587/3234/15004 2590/3237/15005 2588/3235/15006
