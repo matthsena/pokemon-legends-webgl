@@ -1,7 +1,7 @@
 #include "pokeball.hpp"
 #include <glm/fwd.hpp>
 
-void Pokeball::create(Model m_model, const std::string assetsPath, glm::vec3 position)
+void Pokeball::create(Model m_model, const std::string assetsPath)
 {
     m_pokemon_program = abcg::createOpenGLProgram(
         {{.source = assetsPath + "shaders/texture.vert", .stage = abcg::ShaderStage::Vertex},
@@ -23,42 +23,6 @@ void Pokeball::create(Model m_model, const std::string assetsPath, glm::vec3 pos
     m_colorLocation = abcg::glGetUniformLocation(m_pokemon_program, "color");
 
     m_model.loadDiffuseTexture(assetsPath + "pokeball.png", &m_diffuse_texture);
-
-    // Pega o tamanho do modelo para deixar y rente ao chao
-    // float min_height = m_vertices[0].position.y;
-
-    // for (const auto &vertex : m_vertices)
-    // {
-    //     min_height = std::min(min_height, vertex.position.y);
-    // }
-
-    // pega o tamanho do modelo em x e y
-    float min_x = m_vertices[0].position.x;
-    float max_x = m_vertices[0].position.x;
-
-    float min_y = m_vertices[0].position.y;
-    float max_y = m_vertices[0].position.y;
-
-    float min_z = m_vertices[0].position.z;
-    float max_z = m_vertices[0].position.z;
-
-    for (const auto &vertex : m_vertices)
-    {
-        min_x = std::min(min_x, vertex.position.x);
-        max_x = std::max(max_x, vertex.position.x);
-
-        min_y = std::min(min_y, vertex.position.y);
-        max_y = std::max(max_y, vertex.position.y);
-
-        min_z = std::min(min_z, vertex.position.z);
-        max_z = std::max(max_z, vertex.position.z);
-    }
-
-    width = max_x - min_x;
-    height = max_y - min_y;
-    depth = max_z - min_z;
-
-    m_position = glm::vec3(position.x, position.y - (height * 0.2), position.z - depth / 3);
 }
 
 void Pokeball::destroy()
@@ -85,7 +49,7 @@ void Pokeball::update(bool pokeballLaunched, glm::vec3 position)
     m_position = position;
 }
 
-void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
+void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position)
 {
 
     abcg::glUseProgram(m_pokemon_program);
@@ -130,7 +94,15 @@ void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
 
     glm::mat4 model{1.0f};
     // Ajuste a posição do modelo no eixo Y para que ele esteja rente ao chão
-    model = glm::translate(model, m_position);
+    if (m_pokeballLaunched == true)
+    {
+        model = glm::translate(model, m_position);
+    }
+    else
+    {
+        model = glm::translate(model, position);
+    }
+
     model = glm::scale(model, glm::vec3(0.1f));
     // deixando a pokebola virada para o lado que vai ser lancada
     model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));

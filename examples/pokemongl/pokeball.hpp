@@ -8,8 +8,8 @@
 class Pokeball
 {
 public:
-  void create(Model m_model, const std::string assetsPath, glm::vec3 position);
-  void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model);
+  void create(Model m_model, const std::string assetsPath);
+  void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position);
   void update(bool pokeballLaunched, glm::vec3 velocity);
   void destroy();
 
@@ -47,7 +47,7 @@ private:
   float shininess{500.0f};
   // propriedades do pokemonm
   bool m_captured{false};
-  glm::vec3 m_position;
+  glm::vec3 m_position{0.0f, 0.0f, 0.0f};
 };
 
 #endif
