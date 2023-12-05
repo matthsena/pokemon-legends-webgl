@@ -1,5 +1,4 @@
 #include "window.hpp"
-glm::vec2 m_miraPosition;
 
 // Explicit specialization of std::hash for Vertex
 template <>
@@ -12,31 +11,34 @@ struct std::hash<Vertex>
   }
 };
 
-void Window::onEvent(SDL_Event const &event) {
-  if (event.key.keysym.sym == SDLK_i) {
+void Window::onEvent(SDL_Event const &event)
+{
+  if (m_showTutorial && event.key.keysym.sym != SDLK_h)
+    return;
+
+  if (event.key.keysym.sym == SDLK_i)
     m_miraPosition.y -= 10.0f; // Mover para cima
-  }
-  if (event.key.keysym.sym == SDLK_k) {
+
+  if (event.key.keysym.sym == SDLK_k)
     m_miraPosition.y += 10.0f; // Mover para baixo
-  }
+
   // Restrição para manter a mira na tela
   m_miraPosition.y = std::max(m_miraPosition.y, 0.0f);
   m_miraPosition.y = std::min(m_miraPosition.y, static_cast<float>(m_viewportSize.y));
-    
-  if (event.type == SDL_KEYDOWN) {
-    if (event.key.keysym.sym == SDLK_SPACE) {
+
+  if (event.type == SDL_KEYDOWN)
+  {
+    if (event.key.keysym.sym == SDLK_SPACE)
       launchPokeball();
-    }
 
     if (event.key.keysym.sym == SDLK_b)
-    {
       m_showPokedex = !m_showPokedex;
-    }
 
     if (event.key.keysym.sym == SDLK_r)
-    {
       restartGame();
-    }
+
+    if (event.key.keysym.sym == SDLK_h)
+      m_showTutorial = !m_showTutorial;
 
     if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w)
       m_dollySpeed = 1.0f;
@@ -77,6 +79,10 @@ void Window::onCreate()
 {
   auto const &assetsPath{abcg::Application::getAssetsPath()};
 
+  // carregar imagem
+  abcg::glDeleteTextures(1, &m_tutorialTexture);
+  m_tutorialTexture = abcg::loadOpenGLTexture({.path = assetsPath + "tutorial.png"});
+
   // Load a new font
   auto const filename{assetsPath + "fonts/Inconsolata-Medium.ttf"};
   m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(filename.c_str(), 30.0f);
@@ -100,7 +106,7 @@ void Window::onCreate()
   m_ground.create(m_model, assetsPath);
 
   m_pokeball_render.create(m_model, assetsPath);
-  
+
   fmt::print("Posicoes da camera: x: {}, y: {}, z: {}\n", m_camera.getEyePosition().x, m_camera.getEyePosition().y, m_camera.getEyePosition().z);
   // m_pokemon_render.create(m_model, assetsPath);
 
@@ -248,28 +254,47 @@ void Window::onPaintUI()
     float textWidth = 0;
 
     // Desenhar a mira
-  {
-    float miraRadius = 10.0f;
-    ImU32 miraColor = IM_COL32(255, 0, 0, 255);
-    float lineThickness = 2.0f;
-    ImVec2 center(m_viewportSize.x / 2.0f, m_miraPosition.y);
+    {
+      float miraRadius = 10.0f;
+      ImU32 miraColor = IM_COL32(255, 0, 0, 255);
+      float lineThickness = 2.0f;
+      ImVec2 center(m_viewportSize.x / 2.0f, m_miraPosition.y / 2.0f);
 
-    // Ajustar o tamanho da janela para garantir que a mira caiba completamente
-    ImVec2 windowSize = ImVec2(miraRadius * 4, miraRadius * 4);
-    ImVec2 windowPos = ImVec2(center.x - windowSize.x / 2, center.y - windowSize.y / 2);
+      // Ajustar o tamanho da janela para garantir que a mira caiba completamente
+      ImVec2 windowSize = ImVec2(miraRadius * 4, miraRadius * 4);
+      ImVec2 windowPos = ImVec2(center.x - windowSize.x / 2, center.y - windowSize.y / 2);
 
-    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(windowSize);
-    ImGui::SetNextWindowBgAlpha(0);
+      ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+      ImGui::SetNextWindowSize(windowSize);
+      ImGui::SetNextWindowBgAlpha(0);
 
-    ImGui::Begin("MiraWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
+      ImGui::Begin("MiraWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
+      ImDrawList *drawList = ImGui::GetWindowDrawList();
 
-    drawList->AddCircle(center, miraRadius, miraColor, 0, lineThickness);
+      drawList->AddCircle(center, miraRadius, miraColor, 0, lineThickness);
 
-    ImGui::End();
-  }
+      ImGui::End();
+    }
 
+    if (m_showTutorial)
+    {
+      // Calcular o tamanho do quadrado com base na menor dimensão (altura normalmente)
+      float squareSize = std::min(m_viewportSize.x, m_viewportSize.y) * 0.75f;
+
+      // quadrado para centralizar
+      float posX = (m_viewportSize.x - squareSize) / 2.0f;
+      float posY = (m_viewportSize.y - squareSize) / 2.0f;
+
+      // Desenhar o tutorial
+      ImGui::SetNextWindowPos(ImVec2(posX, posY));
+      ImGui::SetNextWindowSize(ImVec2(squareSize, squareSize));
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0)); // Remover a borda da janela
+      ImGui::Begin("Tutorial", nullptr, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
+
+      ImGui::Image((void *)(intptr_t)m_tutorialTexture, ImVec2(squareSize, squareSize), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+      ImGui::End();
+      ImGui::PopStyleVar(); // Restaurar o espaçamento da janela
+    }
 
     // https://stackoverflow.com/questions/64653747/how-to-center-align-text-horizontally
     if (m_currentState == PokemonState::Captured)
@@ -356,6 +381,8 @@ void Window::onDestroy()
   abcg::glDeleteBuffers(1, &m_EBO);
   abcg::glDeleteBuffers(1, &m_VBO);
   abcg::glDeleteVertexArrays(1, &m_VAO);
+
+  abcg::glDeleteTextures(1, &m_tutorialTexture);
 }
 
 void Window::onUpdate()
@@ -374,8 +401,6 @@ void Window::onUpdate()
 
   m_ground.update(sunColor, sunPosition);
 }
-
-static constexpr float GRAVITY = -0.81f;
 
 void Window::launchPokeball()
 {
@@ -398,7 +423,6 @@ void Window::launchPokeball()
     m_pokeballVelocity = glm::normalize(adjustedDirection) * launchSpeed;
 
     m_pokeballLaunched = true;
-  
   }
 }
 

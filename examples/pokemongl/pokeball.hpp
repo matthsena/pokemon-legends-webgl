@@ -21,7 +21,6 @@ public:
 
 private:
   bool m_pokeballLaunched{false};
-  float width, height, depth{0};
 
   GLuint m_VAO{};
   GLuint m_VBO{};
