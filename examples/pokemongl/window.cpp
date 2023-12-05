@@ -127,10 +127,27 @@ void Window::onCreate()
     glm::vec3 position = glm::vec3(rd_poke_position(m_randomEngine), 0,
                                    rd_poke_position(m_randomEngine));
     Pokemon pokemon;
-    pokemon.create(m_model, assetsPath, objFile, position);
+    pokemon.create(m_model, assetsPath, objFile, safeGuard(position));
 
     pokemons_spawned.push_back(pokemon);
   }
+}
+
+glm::vec3 Window::safeGuard(glm::vec3 position)
+{
+  if (position.x < 2.5f)
+    position.x += 2.5f;
+
+  if (position.x < -2.5f)
+    position.x -= 2.5f;
+
+  if (position.z < 2.5f)
+    position.z += 2.5f;
+
+  if (position.z < -2.5f)
+    position.z -= 2.5f;
+
+  return position;
 }
 
 void Window::onPaint()
@@ -470,8 +487,10 @@ void Window::restartGame()
   for (auto &pokemon : pokemons_spawned)
   {
     pokemon.setPokemonCaptured(false);
-    pokemon.setPosition(glm::vec3(rd_poke_position(m_randomEngine), pokemon.getPosition().y,
-                                  rd_poke_position(m_randomEngine)));
+    glm::vec3 position = safeGuard(glm::vec3(rd_poke_position(m_randomEngine), pokemon.getPosition().y,
+                                             rd_poke_position(m_randomEngine)));
+
+    pokemon.setPosition(position);
 
     m_pokedex_pokemons.clear();
 
