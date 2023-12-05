@@ -3,6 +3,7 @@
 
 #include "abcgOpenGL.hpp"
 #include "model.hpp"
+#include "globals.hpp"
 #include <regex>
 
 class Pokemon
@@ -24,6 +25,8 @@ public:
   void setPokemonName(std::string name);
 
 private:
+  Globals g;
+
   GLuint m_VAO{};
   GLuint m_VBO{};
   GLuint m_EBO{};

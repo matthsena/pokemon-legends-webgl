@@ -44,16 +44,6 @@ void Pokeball::destroy()
     abcg::glDeleteVertexArrays(1, &m_VAO);
 }
 
-bool Pokeball::getPokemonCaptured()
-{
-    return m_captured;
-}
-
-void Pokeball::setPokemonCaptured(bool captured)
-{
-    m_captured = captured;
-}
-
 void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position)
 {
 
@@ -106,6 +96,20 @@ void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, 
     else
     {
         model = glm::translate(model, position);
+    }
+
+    // m_captured deixa delay de metade do tempo
+    if (m_captured == true)
+    {
+        frameTimer += 1;
+
+        if (frameTimer > g.CATCH_FRAME_TIME * 2.0f)
+        {
+            fmt::print("Pokemon capturado!\n");
+            m_pokeballLaunched = false;
+            frameTimer = 0;
+            m_captured = false;
+        }
     }
 
     model = glm::scale(model, glm::vec3(SCALE));

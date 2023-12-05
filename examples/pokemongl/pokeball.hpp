@@ -2,6 +2,7 @@
 #define POKEBALL_HPP_
 
 #include "abcgOpenGL.hpp"
+#include "globals.hpp"
 #include "model.hpp"
 #include <regex>
 
@@ -12,8 +13,7 @@ public:
   void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position);
   void destroy();
 
-  bool getPokemonCaptured();
-  void setPokemonCaptured(bool captured);
+  void setPokemonCaptured(bool captured) { m_captured = captured; };
 
   void setPosition(glm::vec3 position) { m_position = position; }
   glm::vec3 getPosition() const { return m_position; }
@@ -24,6 +24,9 @@ public:
   float getPokeballRadius() const { return m_pokeball_radius; }
 
 private:
+  Globals g;
+  float frameTimer{0};
+  
   float m_pokeball_radius{0};
   bool m_pokeballLaunched{false};
   

@@ -233,9 +233,10 @@ void Window::onPaintUI()
     {
       frameTimer += 1;
       // ou seja, passou 1.5 segundo (90 frames)
-      if (frameTimer > 900.0f)
+      if (frameTimer > g.CATCH_FRAME_TIME)
       {
         backToLive();
+        m_pokeball_render.setPokemonCaptured(true);
       }
 
       text = "Capturado!";
@@ -363,22 +364,21 @@ void Window::updatePokeballPosition()
   if (m_pokeball_render.getPokeballLaunched())
   {
     auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
-
-    // Atualize a componente vertical da velocidade devido à gravidade
-    m_pokeballVelocity.y += GRAVITY * deltaTime;
-
-    // Atualize a posição da pokebola
-    m_pokeballPosition += m_pokeballVelocity * deltaTime;
-
     const float pokeballRadius = m_pokeball_render.getPokeballRadius();
-    const float pokemonRadius = 0.5f;
-
-    m_pokeballPosition += m_pokeballVelocity * deltaTime;
-
-    fmt::print("Pokeball pos {} {} {} radius {}\n", m_pokeballPosition.x, m_pokeballPosition.y, m_pokeballPosition.z, pokeballRadius);
 
     if (m_currentState != PokemonState::Captured)
+    {
+
+      // Atualize a componente vertical da velocidade devido à gravidade
+      m_pokeballVelocity.y += GRAVITY * deltaTime;
+
+      // Atualize a posição da pokebola
+      m_pokeballPosition += m_pokeballVelocity * deltaTime;
+      fmt::print("Pokeball pos {} {} {} radius {}\n", m_pokeballPosition.x, m_pokeballPosition.y, m_pokeballPosition.z, pokeballRadius);
       m_pokeball_render.setPosition(m_pokeballPosition);
+    }
+
+    const float pokemonRadius = 0.5f;
 
     // Verifica se saiu da tela
     if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
@@ -404,7 +404,6 @@ void Window::updatePokeballPosition()
         {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon!\n");
-          m_pokeball_render.setPosition(m_camera.getEyePosition());
 
           // probabilidade de captura 45%
           std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
@@ -420,9 +419,10 @@ void Window::updatePokeballPosition()
             // Ajustar a posição da pokebola para ficar no centro do pokemon
             m_pokeball_render.setPosition(glm::vec3(current_pokemon_pos.x, m_pokeball_render.getPokeballRadius(), current_pokemon_pos.z));
           }
-          else
+          else if (m_currentState != PokemonState::Captured)
           {
             m_currentState = PokemonState::Escaped;
+            m_pokeball_render.setPosition(m_camera.getEyePosition());
             m_pokeball_render.setPokeballLaunched(false);
           }
 

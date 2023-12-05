@@ -7,6 +7,7 @@
 #include "ground.hpp"
 #include "pokemon.hpp"
 #include "pokeball.hpp"
+#include "globals.hpp"
 
 #include <chrono>
 #include <random>
@@ -27,6 +28,8 @@ protected:
   void onUpdate() override;
 
 private:
+  Globals g;
+
   GLuint m_tutorialTexture;
   bool m_showTutorial{true};
 
