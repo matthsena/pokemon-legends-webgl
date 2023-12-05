@@ -233,7 +233,7 @@ void Window::onPaintUI()
     {
       frameTimer += 1;
       // ou seja, passou 1.5 segundo (90 frames)
-      if (frameTimer > 90.0f)
+      if (frameTimer > 900.0f)
       {
         backToLive();
       }
@@ -370,18 +370,22 @@ void Window::updatePokeballPosition()
     // Atualize a posição da pokebola
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
-    const float pokeballRadius = 0.1f;
+    const float pokeballRadius = m_pokeball_render.getPokeballRadius();
     const float pokemonRadius = 0.5f;
 
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
-    m_pokeball_render.setPosition(m_pokeballPosition);
+    fmt::print("Pokeball pos {} {} {} radius {}\n", m_pokeballPosition.x, m_pokeballPosition.y, m_pokeballPosition.z, pokeballRadius);
+
+    if (m_currentState != PokemonState::Captured)
+      m_pokeball_render.setPosition(m_pokeballPosition);
 
     // Verifica se saiu da tela
     if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
         (m_pokeballPosition.x - pokeballRadius) > 5.0f ||
         (m_pokeballPosition.z - pokeballRadius) < -5.0f ||
-        (m_pokeballPosition.z - pokeballRadius) > 5.0f)
+        (m_pokeballPosition.z - pokeballRadius) > 5.0f ||
+        (m_pokeballPosition.y - pokeballRadius) < 0.0f)
     {
       m_pokeball_render.setPokeballLaunched(false);
       fmt::print("Pokebola parou!\n");
@@ -411,13 +415,17 @@ void Window::updatePokeballPosition()
             m_pokedex_pokemons.insert(pokemon.getPokemonName());
 
             m_currentState = PokemonState::Captured;
+            glm::vec3 current_pokemon_pos = pokemon.getPosition();
+
+            // Ajustar a posição da pokebola para ficar no centro do pokemon
+            m_pokeball_render.setPosition(glm::vec3(current_pokemon_pos.x, m_pokeball_render.getPokeballRadius(), current_pokemon_pos.z));
           }
           else
           {
             m_currentState = PokemonState::Escaped;
+            m_pokeball_render.setPokeballLaunched(false);
           }
 
-          m_pokeball_render.setPokeballLaunched(false);
           break;
         }
       }

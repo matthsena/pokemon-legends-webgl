@@ -21,8 +21,13 @@ public:
   void setPokeballLaunched(bool launched) { m_pokeballLaunched = launched; }
   bool getPokeballLaunched() const { return m_pokeballLaunched; }
 
+  float getPokeballRadius() const { return m_pokeball_radius; }
+
 private:
+  float m_pokeball_radius{0};
   bool m_pokeballLaunched{false};
+  
+  const float SCALE{0.1};
 
   GLuint m_VAO{};
   GLuint m_VBO{};

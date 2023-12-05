@@ -23,6 +23,7 @@ void Pokemon::create(Model m_model, const std::string assetsPath, std::string ob
     m_colorLocation = abcg::glGetUniformLocation(m_pokemon_program, "color");
 
     m_model.loadDiffuseTexture(assetsPath + objPath + ".png", &m_diffuse_texture);
+    m_model.loadDiffuseTexture(assetsPath + "captured.png", &m_captured_texture);
 
     // Pega o tamanho do modelo para deixar y rente ao chao
     float min_height = m_vertices[0].position.y;
@@ -36,8 +37,6 @@ void Pokemon::create(Model m_model, const std::string assetsPath, std::string ob
 
     y = -min_height;
     h = max_height - min_height;
-
-    fmt::print("min_height: {} max_height: {} y: {} h: {}\n", min_height, max_height, y, h);
 
     m_position = glm::vec3(position.x, -min_height, position.z);
     setPokemonName(objPath);
@@ -129,19 +128,13 @@ void Pokemon::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
         }
         // diminui scale gradualmente
         newScale = 1.0f - (frameTimer / 150.0f);
-        fmt::print("newScale: {} Y pos {}\n", newScale, m_position.y);
 
         // ajusta a posicao em Y
-
-        // float Y = m_position.y * (newScale - 1.0f);
-
-        // m_position = glm::vec3(m_position.x, m_position.y - Y, m_position.z);
         float heightDifference = (1.0f - newScale) * h;
-        fmt::print("heightDifference: {}\n", heightDifference / 2.0f);
-        // m_position.y = y + heightDifference / 2.0f;
+        m_position.y = y - heightDifference / 2.0f;
     }
 
-    model = glm::scale(model, glm::vec3(newScale, 1.0f, newScale));
+    model = glm::scale(model, glm::vec3(newScale));
     // adiciona um contador para qnd a variavel m_captured for verdadeira ir diminuindo a escala do pokemon a cada segundo ate zero
 
     auto modelViewMatrix{glm::mat3(viewMatrix * model)};
@@ -152,6 +145,13 @@ void Pokemon::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
     abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
     abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
 
-    m_model.renderTexture(&m_indices, &m_VAO, m_diffuse_texture);
+    if (m_captured)
+    {
+        m_model.renderTexture(&m_indices, &m_VAO, m_captured_texture);
+    }
+    else
+    {
+        m_model.renderTexture(&m_indices, &m_VAO, m_diffuse_texture);
+    }
     abcg::glUseProgram(0);
 }

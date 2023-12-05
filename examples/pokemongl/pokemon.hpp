@@ -30,6 +30,7 @@ private:
   GLuint m_pokemon_program{};
 
   GLuint m_diffuse_texture{};
+  GLuint m_captured_texture{};
 
   GLint m_viewMatrixLocation{};
   GLint m_projMatrixLocation{};
