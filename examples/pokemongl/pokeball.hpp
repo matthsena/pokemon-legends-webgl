@@ -13,8 +13,6 @@ public:
   void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position);
   void destroy();
 
-  void setPokemonCaptured(bool captured) { m_captured = captured; };
-
   void setPosition(glm::vec3 position) { m_position = position; }
   glm::vec3 getPosition() const { return m_position; }
 
@@ -24,9 +22,7 @@ public:
   float getPokeballRadius() const { return m_pokeball_radius; }
 
 private:
-  Globals g;
-  float frameTimer{0};
-  
+  Globals g;  
   float m_pokeball_radius{0};
   bool m_pokeballLaunched{false};
   
@@ -54,8 +50,6 @@ private:
   glm::vec4 Kd{0.6f};
   glm::vec4 Ks{0.0f};
   float shininess{500.0f};
-  // propriedades do pokemonm
-  bool m_captured{false};
   glm::vec3 m_position{0.0f, 0.0f, 0.0f};
 };
 

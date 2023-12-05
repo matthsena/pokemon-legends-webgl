@@ -236,7 +236,8 @@ void Window::onPaintUI()
       if (frameTimer > g.CATCH_FRAME_TIME)
       {
         backToLive();
-        m_pokeball_render.setPokemonCaptured(true);
+      m_pokeball_render.setPokeballLaunched(false);
+
         // filtrar pokemons capturados do vetor (remover eles)
         std::vector<Pokemon> pokemons_spawned_tmp;
 
@@ -267,7 +268,7 @@ void Window::onPaintUI()
     {
       frameTimer += 1;
       // ou seja, passou 1.5 segundo (90 frames)
-      if (frameTimer > 90.0f)
+      if (frameTimer > g.CATCH_FRAME_TIME)
       {
         backToLive();
       }
@@ -282,7 +283,7 @@ void Window::onPaintUI()
     {
       frameTimer += 1;
       // ou seja, passou 1.5 segundo (90 frames)
-      if (frameTimer > 90.0f)
+      if (frameTimer > g.CATCH_FRAME_TIME)
       {
         m_restarted = false;
         frameTimer = 0.0f;
@@ -427,7 +428,7 @@ void Window::updatePokeballPosition()
           {
             m_currentState = PokemonState::Captured;
 
-            pokemon.setPokemonCaptured(true);
+            pokemon.setPokemonCaptured(true);            
             m_pokedex_pokemons.insert(pokemon.getPokemonName());
 
             glm::vec3 current_pokemon_pos = pokemon.getPosition();
