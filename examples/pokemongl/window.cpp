@@ -117,7 +117,7 @@ void Window::onCreate()
   m_randomEngine.seed(
       std::chrono::steady_clock::now().time_since_epoch().count());
 
-  std::uniform_real_distribution<float> rd_poke_position(-15.0f, 15.0f);
+  std::uniform_real_distribution<float> rd_poke_position(-10.0f, 10.0f);
   std::uniform_int_distribution<int> rd_poke_model(0, m_modelPaths.size() - 1);
 
   // inicializando pokemons
@@ -395,10 +395,10 @@ void Window::updatePokeballPosition()
     }
 
     // Verifica se saiu da tela
-    if ((m_pokeballPosition.x - pokeballRadius) < -15.0f ||
-        (m_pokeballPosition.x - pokeballRadius) > 15.0f ||
-        (m_pokeballPosition.z - pokeballRadius) < -15.0f ||
-        (m_pokeballPosition.z - pokeballRadius) > 15.0f ||
+    if ((m_pokeballPosition.x - pokeballRadius) < -10.0f ||
+        (m_pokeballPosition.x - pokeballRadius) > 10.0f ||
+        (m_pokeballPosition.z - pokeballRadius) < -10.0f ||
+        (m_pokeballPosition.z - pokeballRadius) > 10.0f ||
         (m_pokeballPosition.y - pokeballRadius) < 0.0f)
     {
       m_pokeball_render.setPokeballLaunched(false);
@@ -465,7 +465,7 @@ void Window::backToLive()
 
 void Window::restartGame()
 {
-  std::uniform_real_distribution<float> rd_poke_position(-15.0f, 15.0f);
+  std::uniform_real_distribution<float> rd_poke_position(-10.0f, 10.0f);
 
   for (auto &pokemon : pokemons_spawned)
   {
