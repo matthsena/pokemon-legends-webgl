@@ -16,6 +16,7 @@ public:
   bool getPokemonCaptured();
   void setPokemonCaptured(bool captured);
 
+
   // Posição do pokemon
   glm::vec3 getPosition() const { return m_position; }
   void setPosition(glm::vec3 position) { m_position = position; }
@@ -29,6 +30,9 @@ public:
 
   float getPokemonWidth() const { return m_pokemon_width; }
   float getPokemonHeight() const { return m_pokemon_height; }
+
+  void setInPokebell(bool inPokebell) {  inPokebell = inPokebell; }
+  bool getInPokebell() { return inPokebell; }
 
 private:
   Globals g;
@@ -68,6 +72,8 @@ private:
   int frameTimer{0};
 
   float y{0};
+
+  bool inPokebell{false};
 };
 
 #endif

@@ -133,7 +133,6 @@ void Pokemon::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
         if (frameTimer > (g.CATCH_FRAME_TIME / 2.0f))
         {
             destroy();
-            m_captured = false;
             frameTimer = 0;
         }
         // diminui scale gradualmente
