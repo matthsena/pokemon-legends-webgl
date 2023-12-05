@@ -30,6 +30,7 @@ private:
   GLuint m_pokemon_program{};
 
   GLuint m_diffuse_texture{};
+  GLuint m_captured_texture{};
 
   GLint m_viewMatrixLocation{};
   GLint m_projMatrixLocation{};
@@ -50,6 +51,10 @@ private:
   bool m_captured{false};
   glm::vec3 m_position;
   std::string m_pokemonName;
+  int frameTimer{0};
+
+  float h{0};
+  float y{0};
 };
 
 #endif

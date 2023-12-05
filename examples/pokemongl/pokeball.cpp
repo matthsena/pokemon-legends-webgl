@@ -23,6 +23,17 @@ void Pokeball::create(Model m_model, const std::string assetsPath)
     m_colorLocation = abcg::glGetUniformLocation(m_pokemon_program, "color");
 
     m_model.loadDiffuseTexture(assetsPath + "pokeball.png", &m_diffuse_texture);
+
+    float min_height = m_vertices[0].position.y;
+    float max_height = m_vertices[0].position.y;
+
+    for (const auto &vertex : m_vertices)
+    {
+        min_height = std::min(min_height, vertex.position.y);
+        max_height = std::max(max_height, vertex.position.y);
+    }
+
+    m_pokeball_radius = ((max_height - min_height) / 2.0f) * SCALE;
 }
 
 void Pokeball::destroy()
@@ -41,12 +52,6 @@ bool Pokeball::getPokemonCaptured()
 void Pokeball::setPokemonCaptured(bool captured)
 {
     m_captured = captured;
-}
-
-void Pokeball::update(bool pokeballLaunched, glm::vec3 position)
-{
-    m_pokeballLaunched = pokeballLaunched;
-    m_position = position;
 }
 
 void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position)
@@ -103,7 +108,7 @@ void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, 
         model = glm::translate(model, position);
     }
 
-    model = glm::scale(model, glm::vec3(0.1f));
+    model = glm::scale(model, glm::vec3(SCALE));
     // deixando a pokebola virada para o lado que vai ser lancada
     model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
 

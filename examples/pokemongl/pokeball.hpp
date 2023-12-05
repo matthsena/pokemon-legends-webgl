@@ -10,7 +10,6 @@ class Pokeball
 public:
   void create(Model m_model, const std::string assetsPath);
   void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position);
-  void update(bool pokeballLaunched, glm::vec3 velocity);
   void destroy();
 
   bool getPokemonCaptured();
@@ -19,9 +18,16 @@ public:
   void setPosition(glm::vec3 position) { m_position = position; }
   glm::vec3 getPosition() const { return m_position; }
 
+  void setPokeballLaunched(bool launched) { m_pokeballLaunched = launched; }
+  bool getPokeballLaunched() const { return m_pokeballLaunched; }
+
+  float getPokeballRadius() const { return m_pokeball_radius; }
+
 private:
+  float m_pokeball_radius{0};
   bool m_pokeballLaunched{false};
-  float width, height, depth{0};
+  
+  const float SCALE{0.1};
 
   GLuint m_VAO{};
   GLuint m_VBO{};

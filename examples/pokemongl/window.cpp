@@ -1,5 +1,4 @@
 #include "window.hpp"
-glm::vec2 m_miraPosition;
 
 // Explicit specialization of std::hash for Vertex
 template <>
@@ -12,31 +11,34 @@ struct std::hash<Vertex>
   }
 };
 
-void Window::onEvent(SDL_Event const &event) {
-  if (event.key.keysym.sym == SDLK_i) {
+void Window::onEvent(SDL_Event const &event)
+{
+  if (m_showTutorial && event.key.keysym.sym != SDLK_h)
+    return;
+
+  if (event.key.keysym.sym == SDLK_i)
     m_miraPosition.y -= 10.0f; // Mover para cima
-  }
-  if (event.key.keysym.sym == SDLK_k) {
+
+  if (event.key.keysym.sym == SDLK_k)
     m_miraPosition.y += 10.0f; // Mover para baixo
-  }
+
   // Restrição para manter a mira na tela
   m_miraPosition.y = std::max(m_miraPosition.y, 0.0f);
   m_miraPosition.y = std::min(m_miraPosition.y, static_cast<float>(m_viewportSize.y));
-    
-  if (event.type == SDL_KEYDOWN) {
-    if (event.key.keysym.sym == SDLK_SPACE) {
+
+  if (event.type == SDL_KEYDOWN)
+  {
+    if (event.key.keysym.sym == SDLK_SPACE)
       launchPokeball();
-    }
 
     if (event.key.keysym.sym == SDLK_b)
-    {
       m_showPokedex = !m_showPokedex;
-    }
 
     if (event.key.keysym.sym == SDLK_r)
-    {
       restartGame();
-    }
+
+    if (event.key.keysym.sym == SDLK_h)
+      m_showTutorial = !m_showTutorial;
 
     if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w)
       m_dollySpeed = 1.0f;
@@ -77,6 +79,10 @@ void Window::onCreate()
 {
   auto const &assetsPath{abcg::Application::getAssetsPath()};
 
+  // carregar imagem
+  abcg::glDeleteTextures(1, &m_tutorialTexture);
+  m_tutorialTexture = abcg::loadOpenGLTexture({.path = assetsPath + "tutorial.png"});
+
   // Load a new font
   auto const filename{assetsPath + "fonts/Inconsolata-Medium.ttf"};
   m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(filename.c_str(), 30.0f);
@@ -100,9 +106,6 @@ void Window::onCreate()
   m_ground.create(m_model, assetsPath);
 
   m_pokeball_render.create(m_model, assetsPath);
-  
-  fmt::print("Posicoes da camera: x: {}, y: {}, z: {}\n", m_camera.getEyePosition().x, m_camera.getEyePosition().y, m_camera.getEyePosition().z);
-  // m_pokemon_render.create(m_model, assetsPath);
 
   // Get location of uniform variables
   m_viewMatrixLocation = abcg::glGetUniformLocation(m_program, "viewMatrix");
@@ -130,71 +133,6 @@ void Window::onCreate()
   }
 }
 
-// https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
-std::tuple<std::vector<Vertex>, std::vector<GLuint>>
-Window::loadModelFromFile(std::string_view path)
-{
-  tinyobj::ObjReader reader;
-  std::vector<Vertex> vertices;
-  std::vector<GLuint> indices;
-
-  if (!reader.ParseFromFile(path.data()))
-  {
-    if (!reader.Error().empty())
-    {
-      throw abcg::RuntimeError(
-          fmt::format("Failed to load model {} ({})", path, reader.Error()));
-    }
-    throw abcg::RuntimeError(fmt::format("Failed to load model {}", path));
-  }
-
-  if (!reader.Warning().empty())
-  {
-    fmt::print("Warning: {}\n", reader.Warning());
-  }
-
-  auto const &attributes{reader.GetAttrib()};
-  auto const &shapes{reader.GetShapes()};
-
-  vertices.clear();
-  indices.clear();
-
-  // A key:value map with key=Vertex and value=index
-  std::unordered_map<Vertex, GLuint> hash{};
-
-  // Loop over shapes
-  for (auto const &shape : shapes)
-  {
-    // Loop over indices
-    for (auto const offset : iter::range(shape.mesh.indices.size()))
-    {
-      // Access to vertex
-      auto const index{shape.mesh.indices.at(offset)};
-
-      // Vertex position
-      auto const startIndex{3 * index.vertex_index};
-      auto const vx{attributes.vertices.at(startIndex + 0)};
-      auto const vy{attributes.vertices.at(startIndex + 1)};
-      auto const vz{attributes.vertices.at(startIndex + 2)};
-
-      Vertex const vertex{.position = {vx, vy, vz}};
-
-      // If map doesn't contain this vertex
-      if (!hash.contains(vertex))
-      {
-        // Add this index (size of m_vertices)
-        hash[vertex] = vertices.size();
-        // Add this vertex
-        vertices.push_back(vertex);
-      }
-
-      indices.push_back(hash[vertex]);
-    }
-  }
-
-  return std::make_tuple(vertices, indices);
-}
-
 void Window::onPaint()
 {
   // Clear color buffer and depth buffer
@@ -214,8 +152,8 @@ void Window::onPaint()
   // interate pokemons_spawned
   for (auto &pokemon : pokemons_spawned)
   {
-    if (pokemon.getPokemonCaptured() == false)
-      pokemon.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
+    // if (pokemon.getPokemonCaptured() == false)
+    pokemon.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
   }
 
   abcg::glBindVertexArray(0);
@@ -248,35 +186,54 @@ void Window::onPaintUI()
     float textWidth = 0;
 
     // Desenhar a mira
-  {
-    float miraRadius = 10.0f;
-    ImU32 miraColor = IM_COL32(255, 0, 0, 255);
-    float lineThickness = 2.0f;
-    ImVec2 center(m_viewportSize.x / 2.0f, m_miraPosition.y);
+    {
+      float miraRadius = 10.0f;
+      ImU32 miraColor = IM_COL32(255, 0, 0, 255);
+      float lineThickness = 2.0f;
+      ImVec2 center(m_viewportSize.x / 2.0f, m_miraPosition.y / 2.0f);
 
-    // Ajustar o tamanho da janela para garantir que a mira caiba completamente
-    ImVec2 windowSize = ImVec2(miraRadius * 4, miraRadius * 4);
-    ImVec2 windowPos = ImVec2(center.x - windowSize.x / 2, center.y - windowSize.y / 2);
+      // Ajustar o tamanho da janela para garantir que a mira caiba completamente
+      ImVec2 windowSize = ImVec2(miraRadius * 4, miraRadius * 4);
+      ImVec2 windowPos = ImVec2(center.x - windowSize.x / 2, center.y - windowSize.y / 2);
 
-    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(windowSize);
-    ImGui::SetNextWindowBgAlpha(0);
+      ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+      ImGui::SetNextWindowSize(windowSize);
+      ImGui::SetNextWindowBgAlpha(0);
 
-    ImGui::Begin("MiraWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
+      ImGui::Begin("MiraWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
+      ImDrawList *drawList = ImGui::GetWindowDrawList();
 
-    drawList->AddCircle(center, miraRadius, miraColor, 0, lineThickness);
+      drawList->AddCircle(center, miraRadius, miraColor, 0, lineThickness);
 
-    ImGui::End();
-  }
+      ImGui::End();
+    }
 
+    if (m_showTutorial)
+    {
+      // Calcular o tamanho do quadrado com base na menor dimensão (altura normalmente)
+      float squareSize = std::min(m_viewportSize.x, m_viewportSize.y) * 0.75f;
+
+      // quadrado para centralizar
+      float posX = (m_viewportSize.x - squareSize) / 2.0f;
+      float posY = (m_viewportSize.y - squareSize) / 2.0f;
+
+      // Desenhar o tutorial
+      ImGui::SetNextWindowPos(ImVec2(posX, posY));
+      ImGui::SetNextWindowSize(ImVec2(squareSize, squareSize));
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0)); // Remover a borda da janela
+      ImGui::Begin("Tutorial", nullptr, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
+
+      ImGui::Image((void *)(intptr_t)m_tutorialTexture, ImVec2(squareSize, squareSize), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+      ImGui::End();
+      ImGui::PopStyleVar(); // Restaurar o espaçamento da janela
+    }
 
     // https://stackoverflow.com/questions/64653747/how-to-center-align-text-horizontally
     if (m_currentState == PokemonState::Captured)
     {
       frameTimer += 1;
       // ou seja, passou 1.5 segundo (90 frames)
-      if (frameTimer > 90.0f)
+      if (frameTimer > 900.0f)
       {
         backToLive();
       }
@@ -349,13 +306,15 @@ void Window::onResize(glm::ivec2 const &size)
 void Window::onDestroy()
 {
   m_ground.destroy();
-  m_pokemon_render.destroy();
   m_pokeball_render.destroy();
+  // destroy em cada pokemon spawnado
 
   abcg::glDeleteProgram(m_program);
   abcg::glDeleteBuffers(1, &m_EBO);
   abcg::glDeleteBuffers(1, &m_VBO);
   abcg::glDeleteVertexArrays(1, &m_VAO);
+
+  abcg::glDeleteTextures(1, &m_tutorialTexture);
 }
 
 void Window::onUpdate()
@@ -375,16 +334,14 @@ void Window::onUpdate()
   m_ground.update(sunColor, sunPosition);
 }
 
-static constexpr float GRAVITY = -0.81f;
-
 void Window::launchPokeball()
 {
-  if (!m_pokeballLaunched)
+  if (!m_pokeball_render.getPokeballLaunched())
   {
     m_currentState = PokemonState::Live;
     fmt::print("Pokebola vai!\n");
     m_pokeballPosition = m_camera.getEyePosition();
-    m_pokeball_render.update(m_pokeballLaunched, m_pokeballPosition);
+    m_pokeball_render.setPosition(m_pokeballPosition);
 
     // Apenas uma declaração para cada variável
     float miraOffsetY = (m_miraPosition.y - (m_viewportSize.y / 2.0f)) / m_viewportSize.y;
@@ -397,14 +354,13 @@ void Window::launchPokeball()
     glm::vec3 adjustedDirection = cameraDirection + glm::vec3(0, -miraOffsetY, 0);
     m_pokeballVelocity = glm::normalize(adjustedDirection) * launchSpeed;
 
-    m_pokeballLaunched = true;
-  
+    m_pokeball_render.setPokeballLaunched(true);
   }
 }
 
 void Window::updatePokeballPosition()
 {
-  if (m_pokeballLaunched)
+  if (m_pokeball_render.getPokeballLaunched())
   {
     auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
 
@@ -414,22 +370,27 @@ void Window::updatePokeballPosition()
     // Atualize a posição da pokebola
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
-    const float pokeballRadius = 0.1f;
+    const float pokeballRadius = m_pokeball_render.getPokeballRadius();
     const float pokemonRadius = 0.5f;
 
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
-    m_pokeball_render.update(m_pokeballLaunched, m_pokeballPosition);
+    fmt::print("Pokeball pos {} {} {} radius {}\n", m_pokeballPosition.x, m_pokeballPosition.y, m_pokeballPosition.z, pokeballRadius);
+
+    if (m_currentState != PokemonState::Captured)
+      m_pokeball_render.setPosition(m_pokeballPosition);
 
     // Verifica se saiu da tela
     if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
         (m_pokeballPosition.x - pokeballRadius) > 5.0f ||
         (m_pokeballPosition.z - pokeballRadius) < -5.0f ||
-        (m_pokeballPosition.z - pokeballRadius) > 5.0f)
+        (m_pokeballPosition.z - pokeballRadius) > 5.0f ||
+        (m_pokeballPosition.y - pokeballRadius) < 0.0f)
     {
-      m_pokeballLaunched = false;
+      m_pokeball_render.setPokeballLaunched(false);
       fmt::print("Pokebola parou!\n");
-      m_pokeball_render.update(m_pokeballLaunched, m_camera.getEyePosition());
+
+      m_pokeball_render.setPosition(m_camera.getEyePosition());
     }
 
     // Verifica se colidiu com algum pokemon
@@ -443,7 +404,7 @@ void Window::updatePokeballPosition()
         {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon!\n");
-          m_pokeball_render.update(m_pokeballLaunched, m_camera.getEyePosition());
+          m_pokeball_render.setPosition(m_camera.getEyePosition());
 
           // probabilidade de captura 45%
           std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
@@ -454,13 +415,17 @@ void Window::updatePokeballPosition()
             m_pokedex_pokemons.insert(pokemon.getPokemonName());
 
             m_currentState = PokemonState::Captured;
+            glm::vec3 current_pokemon_pos = pokemon.getPosition();
+
+            // Ajustar a posição da pokebola para ficar no centro do pokemon
+            m_pokeball_render.setPosition(glm::vec3(current_pokemon_pos.x, m_pokeball_render.getPokeballRadius(), current_pokemon_pos.z));
           }
           else
           {
             m_currentState = PokemonState::Escaped;
+            m_pokeball_render.setPokeballLaunched(false);
           }
 
-          m_pokeballLaunched = false;
           break;
         }
       }
@@ -484,7 +449,6 @@ void Window::restartGame()
     pokemon.setPosition(glm::vec3(rd_poke_position(m_randomEngine), pokemon.getPosition().y,
                                   rd_poke_position(m_randomEngine)));
 
-    m_pokeballLaunched = false;
     m_pokedex_pokemons.clear();
 
     m_showPokedex = false;
@@ -492,40 +456,4 @@ void Window::restartGame()
     m_restarted = true;
     frameTimer = 0.0f;
   }
-}
-
-// SOL PROCEDURAL
-std::tuple<std::vector<Vertex>, std::vector<GLuint>> Window::createSphere(float radius, unsigned int sectors, unsigned int stacks)
-{
-  std::vector<Vertex> vertices;
-  std::vector<GLuint> indices;
-
-  float const R = 1.0f / (float)(stacks - 1);
-  float const S = 1.0f / (float)(sectors - 1);
-
-  for (unsigned int r = 0; r < stacks; ++r)
-  {
-    for (unsigned int s = 0; s < sectors; ++s)
-    {
-      float const y = sin(-M_PI_2 + M_PI * r * R);
-      float const x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
-      float const z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
-
-      vertices.push_back(Vertex{glm::vec3(x * radius, y * radius, z * radius)});
-
-      auto curRow = r * sectors;
-      auto nextRow = (r + 1) * sectors;
-      auto nextS = (s + 1) % sectors;
-
-      indices.push_back(curRow + s);
-      indices.push_back(nextRow + s);
-      indices.push_back(nextRow + nextS);
-
-      indices.push_back(curRow + s);
-      indices.push_back(nextRow + nextS);
-      indices.push_back(curRow + nextS);
-    }
-  }
-
-  return {vertices, indices};
 }

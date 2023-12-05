@@ -7,8 +7,8 @@ int main(int argc, char **argv) {
     Window window;
     window.setOpenGLSettings({.samples = 4});
     window.setWindowSettings({
-        .width = 600,
-        .height = 600,
+        .width = 1200,
+        .height = 1200,
         .title = "Pokemon GL",
     });
 
