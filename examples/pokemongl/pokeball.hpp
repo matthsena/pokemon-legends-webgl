@@ -19,6 +19,9 @@ public:
   void setPosition(glm::vec3 position) { m_position = position; }
   glm::vec3 getPosition() const { return m_position; }
 
+  void setPokeballLaunched(bool launched) { m_pokeballLaunched = launched; }
+  bool getPokeballLaunched() const { return m_pokeballLaunched; }
+
 private:
   bool m_pokeballLaunched{false};
 

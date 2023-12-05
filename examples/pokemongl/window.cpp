@@ -404,12 +404,12 @@ void Window::onUpdate()
 
 void Window::launchPokeball()
 {
-  if (!m_pokeballLaunched)
+  if (!m_pokeball_render.getPokeballLaunched())
   {
     m_currentState = PokemonState::Live;
     fmt::print("Pokebola vai!\n");
     m_pokeballPosition = m_camera.getEyePosition();
-    m_pokeball_render.update(m_pokeballLaunched, m_pokeballPosition);
+    m_pokeball_render.update(m_pokeball_render.getPokeballLaunched(), m_pokeballPosition);
 
     // Apenas uma declaração para cada variável
     float miraOffsetY = (m_miraPosition.y - (m_viewportSize.y / 2.0f)) / m_viewportSize.y;
@@ -422,13 +422,13 @@ void Window::launchPokeball()
     glm::vec3 adjustedDirection = cameraDirection + glm::vec3(0, -miraOffsetY, 0);
     m_pokeballVelocity = glm::normalize(adjustedDirection) * launchSpeed;
 
-    m_pokeballLaunched = true;
+    m_pokeball_render.setPokeballLaunched(true);
   }
 }
 
 void Window::updatePokeballPosition()
 {
-  if (m_pokeballLaunched)
+  if (m_pokeball_render.getPokeballLaunched())
   {
     auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
 
@@ -443,7 +443,7 @@ void Window::updatePokeballPosition()
 
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
-    m_pokeball_render.update(m_pokeballLaunched, m_pokeballPosition);
+    m_pokeball_render.update(m_pokeball_render.getPokeballLaunched(), m_pokeballPosition);
 
     // Verifica se saiu da tela
     if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
@@ -451,9 +451,9 @@ void Window::updatePokeballPosition()
         (m_pokeballPosition.z - pokeballRadius) < -5.0f ||
         (m_pokeballPosition.z - pokeballRadius) > 5.0f)
     {
-      m_pokeballLaunched = false;
+      m_pokeball_render.setPokeballLaunched(false);
       fmt::print("Pokebola parou!\n");
-      m_pokeball_render.update(m_pokeballLaunched, m_camera.getEyePosition());
+      m_pokeball_render.update(m_pokeball_render.getPokeballLaunched(), m_camera.getEyePosition());
     }
 
     // Verifica se colidiu com algum pokemon
@@ -467,7 +467,7 @@ void Window::updatePokeballPosition()
         {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon!\n");
-          m_pokeball_render.update(m_pokeballLaunched, m_camera.getEyePosition());
+          m_pokeball_render.update(m_pokeball_render.getPokeballLaunched(), m_camera.getEyePosition());
 
           // probabilidade de captura 45%
           std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
@@ -484,7 +484,7 @@ void Window::updatePokeballPosition()
             m_currentState = PokemonState::Escaped;
           }
 
-          m_pokeballLaunched = false;
+          m_pokeball_render.setPokeballLaunched(false);
           break;
         }
       }

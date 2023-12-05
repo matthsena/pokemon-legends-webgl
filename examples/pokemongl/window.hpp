@@ -87,7 +87,6 @@ private:
   // Estados da Pokébola
   glm::vec3 m_pokeballPosition{};
   glm::vec3 m_pokeballVelocity{};
-  bool m_pokeballLaunched{false};
 
   enum class PokemonState
   {
