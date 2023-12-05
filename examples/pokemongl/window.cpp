@@ -258,10 +258,10 @@ void Window::onPaintUI()
         pokemons_spawned_tmp.clear();
       }
 
-      text = "Capturado!";
-      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      std::string textCapturado = "Capturado!";
+      textWidth = ImGui::CalcTextSize(textCapturado.c_str()).x;
       ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-      ImGui::TextUnformatted(text.c_str());
+      ImGui::TextUnformatted(textCapturado.c_str());
     }
     else if (m_currentState == PokemonState::Escaped)
     {
@@ -272,10 +272,10 @@ void Window::onPaintUI()
         backToLive();
       }
 
-      text = "Escapou!";
-      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      std::string textEscapou = "Escapou!";
+      textWidth = ImGui::CalcTextSize(textEscapou.c_str()).x;
       ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-      ImGui::TextUnformatted(text.c_str());
+      ImGui::TextUnformatted(textEscapou.c_str());
     }
 
     if (m_restarted == true)
@@ -380,24 +380,18 @@ void Window::launchPokeball()
 
 void Window::updatePokeballPosition()
 {
-  if (m_pokeball_render.getPokeballLaunched())
+  if (m_pokeball_render.getPokeballLaunched() && m_currentState != PokemonState::Captured)
   {
     auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
     const float pokeballRadius = m_pokeball_render.getPokeballRadius();
 
     if (m_currentState != PokemonState::Captured)
     {
-
-      // Atualize a componente vertical da velocidade devido à gravidade
       m_pokeballVelocity.y += GRAVITY * deltaTime;
 
-      // Atualize a posição da pokebola
       m_pokeballPosition += m_pokeballVelocity * deltaTime;
-      fmt::print("Pokeball pos {} {} {} radius {}\n", m_pokeballPosition.x, m_pokeballPosition.y, m_pokeballPosition.z, pokeballRadius);
       m_pokeball_render.setPosition(m_pokeballPosition);
     }
-
-    const float pokemonRadius = 0.5f;
 
     // Verifica se saiu da tela
     if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
@@ -415,11 +409,13 @@ void Window::updatePokeballPosition()
     // Verifica se colidiu com algum pokemon
     for (auto &pokemon : pokemons_spawned)
     {
+      const float pokemonRadius = 0.5f;
+
       if (pokemon.getPokemonCaptured() == false)
       {
         float distance = glm::distance(m_pokeballPosition, pokemon.getPosition());
 
-        if ((distance - pokemonRadius - pokeballRadius) < 0.02f)
+        if ((distance - pokemonRadius - pokeballRadius) < 0.0f)
         {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon!\n");
@@ -429,13 +425,13 @@ void Window::updatePokeballPosition()
 
           if (rd_poke_capture(m_randomEngine) < 0.45f)
           {
+            m_currentState = PokemonState::Captured;
+
             pokemon.setPokemonCaptured(true);
             m_pokedex_pokemons.insert(pokemon.getPokemonName());
 
-            m_currentState = PokemonState::Captured;
             glm::vec3 current_pokemon_pos = pokemon.getPosition();
 
-            // Ajustar a posição da pokebola para ficar no centro do pokemon
             m_pokeball_render.setPosition(glm::vec3(current_pokemon_pos.x, m_pokeball_render.getPokeballRadius(), current_pokemon_pos.z));
           }
           else if (m_currentState != PokemonState::Captured)

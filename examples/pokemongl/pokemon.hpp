@@ -24,8 +24,13 @@ public:
   std::string getPokemonName() const { return m_pokemonName; }
   void setPokemonName(std::string name);
 
+  // Raio do pokemon
+  float getPokemonRadius() const { return m_pokemon_radius; }
+
 private:
   Globals g;
+
+  float m_pokemon_radius{0};
 
   GLuint m_VAO{};
   GLuint m_VBO{};

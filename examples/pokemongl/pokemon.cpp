@@ -29,10 +29,16 @@ void Pokemon::create(Model m_model, const std::string assetsPath, std::string ob
     float min_height = m_vertices[0].position.y;
     float max_height = m_vertices[0].position.y;
 
+    float min_width = m_vertices[0].position.x;
+    float max_width = m_vertices[0].position.x;
+
     for (const auto &vertex : m_vertices)
     {
         min_height = std::min(min_height, vertex.position.y);
         max_height = std::max(max_height, vertex.position.y);
+
+        min_width = std::min(min_width, vertex.position.x);
+        max_width = std::max(max_width, vertex.position.x);
     }
 
     y = -min_height;
@@ -40,6 +46,9 @@ void Pokemon::create(Model m_model, const std::string assetsPath, std::string ob
 
     m_position = glm::vec3(position.x, -min_height, position.z);
     setPokemonName(objPath);
+
+    m_pokemon_radius = ((max_width - min_width) / 2.0f);
+
 }
 
 void Pokemon::destroy()
