@@ -107,9 +107,6 @@ void Window::onCreate()
 
   m_pokeball_render.create(m_model, assetsPath);
 
-  fmt::print("Posicoes da camera: x: {}, y: {}, z: {}\n", m_camera.getEyePosition().x, m_camera.getEyePosition().y, m_camera.getEyePosition().z);
-  // m_pokemon_render.create(m_model, assetsPath);
-
   // Get location of uniform variables
   m_viewMatrixLocation = abcg::glGetUniformLocation(m_program, "viewMatrix");
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
@@ -134,71 +131,6 @@ void Window::onCreate()
 
     pokemons_spawned.push_back(pokemon);
   }
-}
-
-// https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
-std::tuple<std::vector<Vertex>, std::vector<GLuint>>
-Window::loadModelFromFile(std::string_view path)
-{
-  tinyobj::ObjReader reader;
-  std::vector<Vertex> vertices;
-  std::vector<GLuint> indices;
-
-  if (!reader.ParseFromFile(path.data()))
-  {
-    if (!reader.Error().empty())
-    {
-      throw abcg::RuntimeError(
-          fmt::format("Failed to load model {} ({})", path, reader.Error()));
-    }
-    throw abcg::RuntimeError(fmt::format("Failed to load model {}", path));
-  }
-
-  if (!reader.Warning().empty())
-  {
-    fmt::print("Warning: {}\n", reader.Warning());
-  }
-
-  auto const &attributes{reader.GetAttrib()};
-  auto const &shapes{reader.GetShapes()};
-
-  vertices.clear();
-  indices.clear();
-
-  // A key:value map with key=Vertex and value=index
-  std::unordered_map<Vertex, GLuint> hash{};
-
-  // Loop over shapes
-  for (auto const &shape : shapes)
-  {
-    // Loop over indices
-    for (auto const offset : iter::range(shape.mesh.indices.size()))
-    {
-      // Access to vertex
-      auto const index{shape.mesh.indices.at(offset)};
-
-      // Vertex position
-      auto const startIndex{3 * index.vertex_index};
-      auto const vx{attributes.vertices.at(startIndex + 0)};
-      auto const vy{attributes.vertices.at(startIndex + 1)};
-      auto const vz{attributes.vertices.at(startIndex + 2)};
-
-      Vertex const vertex{.position = {vx, vy, vz}};
-
-      // If map doesn't contain this vertex
-      if (!hash.contains(vertex))
-      {
-        // Add this index (size of m_vertices)
-        hash[vertex] = vertices.size();
-        // Add this vertex
-        vertices.push_back(vertex);
-      }
-
-      indices.push_back(hash[vertex]);
-    }
-  }
-
-  return std::make_tuple(vertices, indices);
 }
 
 void Window::onPaint()
@@ -409,7 +341,7 @@ void Window::launchPokeball()
     m_currentState = PokemonState::Live;
     fmt::print("Pokebola vai!\n");
     m_pokeballPosition = m_camera.getEyePosition();
-    m_pokeball_render.update(m_pokeball_render.getPokeballLaunched(), m_pokeballPosition);
+    m_pokeball_render.setPosition(m_pokeballPosition);
 
     // Apenas uma declaração para cada variável
     float miraOffsetY = (m_miraPosition.y - (m_viewportSize.y / 2.0f)) / m_viewportSize.y;
@@ -443,7 +375,7 @@ void Window::updatePokeballPosition()
 
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
-    m_pokeball_render.update(m_pokeball_render.getPokeballLaunched(), m_pokeballPosition);
+    m_pokeball_render.setPosition(m_pokeballPosition);
 
     // Verifica se saiu da tela
     if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
@@ -453,7 +385,8 @@ void Window::updatePokeballPosition()
     {
       m_pokeball_render.setPokeballLaunched(false);
       fmt::print("Pokebola parou!\n");
-      m_pokeball_render.update(m_pokeball_render.getPokeballLaunched(), m_camera.getEyePosition());
+
+      m_pokeball_render.setPosition(m_camera.getEyePosition());
     }
 
     // Verifica se colidiu com algum pokemon
@@ -467,7 +400,7 @@ void Window::updatePokeballPosition()
         {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon!\n");
-          m_pokeball_render.update(m_pokeball_render.getPokeballLaunched(), m_camera.getEyePosition());
+          m_pokeball_render.setPosition(m_camera.getEyePosition());
 
           // probabilidade de captura 45%
           std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
@@ -508,7 +441,6 @@ void Window::restartGame()
     pokemon.setPosition(glm::vec3(rd_poke_position(m_randomEngine), pokemon.getPosition().y,
                                   rd_poke_position(m_randomEngine)));
 
-    m_pokeballLaunched = false;
     m_pokedex_pokemons.clear();
 
     m_showPokedex = false;

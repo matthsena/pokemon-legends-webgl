@@ -43,12 +43,6 @@ void Pokeball::setPokemonCaptured(bool captured)
     m_captured = captured;
 }
 
-void Pokeball::update(bool pokeballLaunched, glm::vec3 position)
-{
-    m_pokeballLaunched = pokeballLaunched;
-    m_position = position;
-}
-
 void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position)
 {
 

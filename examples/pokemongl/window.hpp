@@ -78,12 +78,6 @@ private:
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
 
-  std::vector<Vertex> m_vertices_pokeball;
-  std::vector<GLuint> m_indices_pokeball;
-
-  std::tuple<std::vector<Vertex>, std::vector<GLuint>>
-  loadModelFromFile(std::string_view path);
-
   // Estados da Pokébola
   glm::vec3 m_pokeballPosition{};
   glm::vec3 m_pokeballVelocity{};
@@ -98,7 +92,6 @@ private:
 
   void launchPokeball();
   void updatePokeballPosition();
-  // void checkPokemonCapture();
 
   void backToLive();
   void restartGame();

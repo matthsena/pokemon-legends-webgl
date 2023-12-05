@@ -10,7 +10,6 @@ class Pokeball
 public:
   void create(Model m_model, const std::string assetsPath);
   void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position);
-  void update(bool pokeballLaunched, glm::vec3 velocity);
   void destroy();
 
   bool getPokemonCaptured();
