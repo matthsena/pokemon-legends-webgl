@@ -130,14 +130,14 @@ void Pokemon::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
         frameTimer += 1;
 
         // 150 = 2.5s
-        if (frameTimer > g.CATCH_FRAME_TIME)
+        if (frameTimer > (g.CATCH_FRAME_TIME / 2.0f))
         {
             destroy();
             m_captured = false;
             frameTimer = 0;
         }
         // diminui scale gradualmente
-        newScale = 1.0f - (frameTimer / g.CATCH_FRAME_TIME);
+        newScale = 1.0f - (frameTimer / (g.CATCH_FRAME_TIME / 2.0f));
 
         // ajusta a posicao em Y
         float heightDifference = (1.0f - newScale) * m_pokemon_height;
