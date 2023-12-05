@@ -236,7 +236,7 @@ void Window::onPaintUI()
       if (frameTimer > g.CATCH_FRAME_TIME)
       {
         backToLive();
-      m_pokeball_render.setPokeballLaunched(false);
+        m_pokeball_render.setPokeballLaunched(false);
 
         // filtrar pokemons capturados do vetor (remover eles)
         std::vector<Pokemon> pokemons_spawned_tmp;
@@ -410,13 +410,21 @@ void Window::updatePokeballPosition()
     // Verifica se colidiu com algum pokemon
     for (auto &pokemon : pokemons_spawned)
     {
-      const float pokemonRadius = 0.5f;
-
       if (pokemon.getPokemonCaptured() == false)
       {
-        float distance = glm::distance(m_pokeballPosition, pokemon.getPosition());
+        // float distance = glm::distance(m_pokeballPosition, pokemon.getPosition());
 
-        if ((distance - pokemonRadius - pokeballRadius) < 0.0f)
+        // Altura e largura do pokemon
+        const float pokemonHeight = pokemon.getPokemonHeight();
+        const float pokemonWidth = pokemon.getPokemonWidth();
+        // verifica se a pokebola está dentro do paralelepipedo do pokemon considerando todos os eixos
+
+        if ((m_pokeballPosition.x - pokeballRadius) > (pokemon.getPosition().x - pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.x - pokeballRadius) < (pokemon.getPosition().x + pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.y - pokeballRadius) > (pokemon.getPosition().y - pokemonHeight / 2.0f) &&
+            (m_pokeballPosition.y - pokeballRadius) < (pokemon.getPosition().y + pokemonHeight / 2.0f) &&
+            (m_pokeballPosition.z - pokeballRadius) > (pokemon.getPosition().z - pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.z - pokeballRadius) < (pokemon.getPosition().z + pokemonWidth / 2.0f))
         {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon!\n");
@@ -428,7 +436,7 @@ void Window::updatePokeballPosition()
           {
             m_currentState = PokemonState::Captured;
 
-            pokemon.setPokemonCaptured(true);            
+            pokemon.setPokemonCaptured(true);
             m_pokedex_pokemons.insert(pokemon.getPokemonName());
 
             glm::vec3 current_pokemon_pos = pokemon.getPosition();

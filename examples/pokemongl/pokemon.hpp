@@ -27,10 +27,16 @@ public:
   // Raio do pokemon
   float getPokemonRadius() const { return m_pokemon_radius; }
 
+  float getPokemonWidth() const { return m_pokemon_width; }
+  float getPokemonHeight() const { return m_pokemon_height; }
+
 private:
   Globals g;
 
   float m_pokemon_radius{0};
+
+  float m_pokemon_width{0};
+  float m_pokemon_height{0};
 
   GLuint m_VAO{};
   GLuint m_VBO{};
@@ -61,7 +67,6 @@ private:
   std::string m_pokemonName;
   int frameTimer{0};
 
-  float h{0};
   float y{0};
 };
 

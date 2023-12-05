@@ -42,12 +42,13 @@ void Pokemon::create(Model m_model, const std::string assetsPath, std::string ob
     }
 
     y = -min_height;
-    h = max_height - min_height;
 
     m_position = glm::vec3(position.x, -min_height, position.z);
     setPokemonName(objPath);
 
     m_pokemon_radius = ((max_width - min_width) / 2.0f);
+    m_pokemon_width = max_width - min_width;
+    m_pokemon_height = max_height - min_height;
 
 }
 
@@ -139,7 +140,7 @@ void Pokemon::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
         newScale = 1.0f - (frameTimer / g.CATCH_FRAME_TIME);
 
         // ajusta a posicao em Y
-        float heightDifference = (1.0f - newScale) * h;
+        float heightDifference = (1.0f - newScale) * m_pokemon_height;
         m_position.y = y - heightDifference / 2.0f;
     }
 
