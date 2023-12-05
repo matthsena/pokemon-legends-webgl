@@ -35,9 +35,19 @@ private:
 
   std::vector<Pokemon> pokemons_spawned; // pokemons que já foram spawnados
 
-  std::vector<std::string> m_modelPaths = {"pokemons/Charmander.obj", "pokemons/Bulbasaur.obj"};
+  std::vector<std::string> m_modelPaths = {
+      "pokemons/Blastoise.obj",
+      "pokemons/Charmander.obj",
+      "pokemons/Ivysaur.obj",
+      "pokemons/VenusaurM.obj",
+      "pokemons/Bulbasaur.obj",
+      "pokemons/Charmeleon.obj",
+      "pokemons/Squirtle.obj",
+      "pokemons/Charizard.obj",
+      "pokemons/Wartortle.obj",
+      "pokemons/PikachuM.obj"};
 
-  int m_num_pokemons{5};
+  int m_num_pokemons{50};
   // MIRA
   glm::vec2 m_miraPosition{0, 0};
   // // GRAVIDADE
