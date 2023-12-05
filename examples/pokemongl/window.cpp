@@ -237,6 +237,25 @@ void Window::onPaintUI()
       {
         backToLive();
         m_pokeball_render.setPokemonCaptured(true);
+        // filtrar pokemons capturados do vetor (remover eles)
+        std::vector<Pokemon> pokemons_spawned_tmp;
+
+        for (auto &pokemon : pokemons_spawned)
+        {
+          if (pokemon.getPokemonCaptured() == false)
+          {
+            pokemons_spawned_tmp.push_back(pokemon);
+          }
+        }
+
+        pokemons_spawned.clear();
+
+        for (auto &pokemon : pokemons_spawned_tmp)
+        {
+          pokemons_spawned.push_back(pokemon);
+        }
+
+        pokemons_spawned_tmp.clear();
       }
 
       text = "Capturado!";

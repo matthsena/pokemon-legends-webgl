@@ -105,7 +105,7 @@ void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, 
 
         if (frameTimer > g.CATCH_FRAME_TIME * 2.0f)
         {
-            fmt::print("Pokemon capturado!\n");
+            fmt::print("[POKEBALL] Pokemon capturado!\n");
             m_pokeballLaunched = false;
             frameTimer = 0;
             m_captured = false;

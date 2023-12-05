@@ -4,7 +4,7 @@
 class Globals
 {
   public:
-    const float CATCH_FRAME_TIME = 90.0f;
+    const float CATCH_FRAME_TIME = 900.0f;
 };
 
 #endif
