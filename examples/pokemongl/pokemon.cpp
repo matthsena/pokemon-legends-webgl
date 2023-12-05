@@ -9,7 +9,7 @@ void Pokemon::create(Model m_model, const std::string assetsPath, std::string ob
           .stage = abcg::ShaderStage::Fragment}});
 
     // Carregamos os índices e vértices para a bola a partir do sphere.obj
-    m_model.loadObj(assetsPath +  objPath, &m_vertices, &m_indices, &m_VBO,
+    m_model.loadObj(assetsPath + objPath, &m_vertices, &m_indices, &m_VBO,
                     &m_EBO);
 
     // Inicializamos os buffers para a parede
@@ -26,11 +26,18 @@ void Pokemon::create(Model m_model, const std::string assetsPath, std::string ob
 
     // Pega o tamanho do modelo para deixar y rente ao chao
     float min_height = m_vertices[0].position.y;
+    float max_height = m_vertices[0].position.y;
 
     for (const auto &vertex : m_vertices)
     {
         min_height = std::min(min_height, vertex.position.y);
+        max_height = std::max(max_height, vertex.position.y);
     }
+
+    y = -min_height;
+    h = max_height - min_height;
+
+    fmt::print("min_height: {} max_height: {} y: {} h: {}\n", min_height, max_height, y, h);
 
     m_position = glm::vec3(position.x, -min_height, position.z);
     setPokemonName(objPath);
@@ -107,6 +114,35 @@ void Pokemon::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
     glm::mat4 model{1.0f};
     // Ajuste a posição do modelo no eixo Y para que ele esteja rente ao chão
     model = glm::translate(model, m_position);
+    float newScale = 1.0f;
+
+    if (m_captured)
+    {
+        frameTimer += 1;
+
+        // 150 = 2.5s
+        if (frameTimer > 150.0f)
+        {
+            destroy();
+            m_captured = false;
+            frameTimer = 0;
+        }
+        // diminui scale gradualmente
+        newScale = 1.0f - (frameTimer / 150.0f);
+        fmt::print("newScale: {} Y pos {}\n", newScale, m_position.y);
+
+        // ajusta a posicao em Y
+
+        // float Y = m_position.y * (newScale - 1.0f);
+
+        // m_position = glm::vec3(m_position.x, m_position.y - Y, m_position.z);
+        float heightDifference = (1.0f - newScale) * h;
+        fmt::print("heightDifference: {}\n", heightDifference / 2.0f);
+        // m_position.y = y + heightDifference / 2.0f;
+    }
+
+    model = glm::scale(model, glm::vec3(newScale, 1.0f, newScale));
+    // adiciona um contador para qnd a variavel m_captured for verdadeira ir diminuindo a escala do pokemon a cada segundo ate zero
 
     auto modelViewMatrix{glm::mat3(viewMatrix * model)};
     auto normalMatrix{glm::inverseTranspose(modelViewMatrix)};

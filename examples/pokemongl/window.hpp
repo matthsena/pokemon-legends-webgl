@@ -71,8 +71,6 @@ private:
 
   Ground m_ground;
 
-  Pokemon m_pokemon_render;
-
   Pokeball m_pokeball_render;
 
   std::vector<Vertex> m_vertices;
@@ -95,8 +93,6 @@ private:
 
   void backToLive();
   void restartGame();
-
-  std::tuple<std::vector<Vertex>, std::vector<GLuint>> createSphere(float radius, unsigned int sectors, unsigned int stacks);
 
   int frameTimer{0};
 };

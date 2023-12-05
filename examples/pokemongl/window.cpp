@@ -152,8 +152,8 @@ void Window::onPaint()
   // interate pokemons_spawned
   for (auto &pokemon : pokemons_spawned)
   {
-    if (pokemon.getPokemonCaptured() == false)
-      pokemon.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
+    // if (pokemon.getPokemonCaptured() == false)
+    pokemon.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
   }
 
   abcg::glBindVertexArray(0);
@@ -306,8 +306,8 @@ void Window::onResize(glm::ivec2 const &size)
 void Window::onDestroy()
 {
   m_ground.destroy();
-  m_pokemon_render.destroy();
   m_pokeball_render.destroy();
+  // destroy em cada pokemon spawnado
 
   abcg::glDeleteProgram(m_program);
   abcg::glDeleteBuffers(1, &m_EBO);
@@ -448,40 +448,4 @@ void Window::restartGame()
     m_restarted = true;
     frameTimer = 0.0f;
   }
-}
-
-// SOL PROCEDURAL
-std::tuple<std::vector<Vertex>, std::vector<GLuint>> Window::createSphere(float radius, unsigned int sectors, unsigned int stacks)
-{
-  std::vector<Vertex> vertices;
-  std::vector<GLuint> indices;
-
-  float const R = 1.0f / (float)(stacks - 1);
-  float const S = 1.0f / (float)(sectors - 1);
-
-  for (unsigned int r = 0; r < stacks; ++r)
-  {
-    for (unsigned int s = 0; s < sectors; ++s)
-    {
-      float const y = sin(-M_PI_2 + M_PI * r * R);
-      float const x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
-      float const z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
-
-      vertices.push_back(Vertex{glm::vec3(x * radius, y * radius, z * radius)});
-
-      auto curRow = r * sectors;
-      auto nextRow = (r + 1) * sectors;
-      auto nextS = (s + 1) % sectors;
-
-      indices.push_back(curRow + s);
-      indices.push_back(nextRow + s);
-      indices.push_back(nextRow + nextS);
-
-      indices.push_back(curRow + s);
-      indices.push_back(nextRow + nextS);
-      indices.push_back(curRow + nextS);
-    }
-  }
-
-  return {vertices, indices};
 }

@@ -50,6 +50,10 @@ private:
   bool m_captured{false};
   glm::vec3 m_position;
   std::string m_pokemonName;
+  int frameTimer{0};
+
+  float h{0};
+  float y{0};
 };
 
 #endif
