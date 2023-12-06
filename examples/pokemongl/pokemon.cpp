@@ -29,17 +29,27 @@ void Pokemon::create(Model m_model, const std::string assetsPath, std::string ob
     float min_height = m_vertices[0].position.y;
     float max_height = m_vertices[0].position.y;
 
+    float min_width = m_vertices[0].position.x;
+    float max_width = m_vertices[0].position.x;
+
     for (const auto &vertex : m_vertices)
     {
         min_height = std::min(min_height, vertex.position.y);
         max_height = std::max(max_height, vertex.position.y);
+
+        min_width = std::min(min_width, vertex.position.x);
+        max_width = std::max(max_width, vertex.position.x);
     }
 
     y = -min_height;
-    h = max_height - min_height;
 
     m_position = glm::vec3(position.x, -min_height, position.z);
     setPokemonName(objPath);
+
+    m_pokemon_radius = ((max_width - min_width) / 2.0f);
+    m_pokemon_width = max_width - min_width;
+    m_pokemon_height = max_height - min_height;
+
 }
 
 void Pokemon::destroy()
@@ -54,7 +64,10 @@ void Pokemon::setPokemonName(std::string name)
 {
     // regex para remover ".obj" do nome
     std::regex e(".obj");
+    std::regex n("pokemons/");
+    
     m_pokemonName = std::regex_replace(name, e, "");
+    m_pokemonName = std::regex_replace(m_pokemonName, n, "");
 }
 
 bool Pokemon::getPokemonCaptured()
@@ -120,17 +133,16 @@ void Pokemon::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model)
         frameTimer += 1;
 
         // 150 = 2.5s
-        if (frameTimer > 150.0f)
+        if (frameTimer > (g.CATCH_FRAME_TIME / 2.0f))
         {
             destroy();
-            m_captured = false;
             frameTimer = 0;
         }
         // diminui scale gradualmente
-        newScale = 1.0f - (frameTimer / 150.0f);
+        newScale = 1.0f - (frameTimer / (g.CATCH_FRAME_TIME / 2.0f));
 
         // ajusta a posicao em Y
-        float heightDifference = (1.0f - newScale) * h;
+        float heightDifference = (1.0f - newScale) * m_pokemon_height;
         m_position.y = y - heightDifference / 2.0f;
     }
 

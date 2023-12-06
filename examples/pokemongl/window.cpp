@@ -117,20 +117,46 @@ void Window::onCreate()
   m_randomEngine.seed(
       std::chrono::steady_clock::now().time_since_epoch().count());
 
-  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
+  std::uniform_real_distribution<float> rd_poke_position(-8.5f, 8.5f);
   std::uniform_int_distribution<int> rd_poke_model(0, m_modelPaths.size() - 1);
 
   // inicializando pokemons
   for (int i = 0; i < m_num_pokemons; ++i)
   {
     std::string objFile = m_modelPaths[rd_poke_model(m_randomEngine)];
-    glm::vec3 position = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                   rd_poke_position(m_randomEngine));
+    glm::vec3 position;
+
+    bool positionIsValid = false;
+    while (!positionIsValid)
+    {
+      position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), 0,
+                           safeGuard(rd_poke_position(m_randomEngine)));
+
+      positionIsValid = true;
+      for (const auto &pokemon : pokemons_spawned)
+      {
+        if (glm::distance(position, pokemon.getPosition()) < 1.0f)
+        {
+          positionIsValid = false;
+          break;
+        }
+      }
+    }
+
     Pokemon pokemon;
     pokemon.create(m_model, assetsPath, objFile, position);
 
     pokemons_spawned.push_back(pokemon);
   }
+}
+
+float Window::safeGuard(float x)
+{
+  if (x > 0.0f) {
+    return x + 1.5f;
+  }
+
+  return x - 1.5f;
 }
 
 void Window::onPaint()
@@ -233,36 +259,57 @@ void Window::onPaintUI()
     {
       frameTimer += 1;
       // ou seja, passou 1.5 segundo (90 frames)
-      if (frameTimer > 900.0f)
+      if (frameTimer > g.CATCH_FRAME_TIME)
       {
         backToLive();
+        m_pokeball_render.setPokeballLaunched(false);
+
+        // filtrar pokemons capturados do vetor (remover eles)
+        std::vector<Pokemon> pokemons_spawned_tmp;
+
+        for (auto &pokemon : pokemons_spawned)
+        {
+          if (pokemon.getPokemonCaptured() == false)
+          {
+            pokemons_spawned_tmp.push_back(pokemon);
+          }
+        }
+
+        pokemons_spawned.clear();
+
+        for (auto &pokemon : pokemons_spawned_tmp)
+        {
+          pokemons_spawned.push_back(pokemon);
+        }
+
+        pokemons_spawned_tmp.clear();
       }
 
-      text = "Capturado!";
-      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      std::string textCapturado = "Capturado!";
+      textWidth = ImGui::CalcTextSize(textCapturado.c_str()).x;
       ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-      ImGui::TextUnformatted(text.c_str());
+      ImGui::TextUnformatted(textCapturado.c_str());
     }
     else if (m_currentState == PokemonState::Escaped)
     {
       frameTimer += 1;
       // ou seja, passou 1.5 segundo (90 frames)
-      if (frameTimer > 90.0f)
+      if (frameTimer > g.CATCH_FRAME_TIME)
       {
         backToLive();
       }
 
-      text = "Escapou!";
-      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      std::string textEscapou = "Escapou!";
+      textWidth = ImGui::CalcTextSize(textEscapou.c_str()).x;
       ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-      ImGui::TextUnformatted(text.c_str());
+      ImGui::TextUnformatted(textEscapou.c_str());
     }
 
     if (m_restarted == true)
     {
       frameTimer += 1;
       // ou seja, passou 1.5 segundo (90 frames)
-      if (frameTimer > 90.0f)
+      if (frameTimer > g.CATCH_FRAME_TIME)
       {
         m_restarted = false;
         frameTimer = 0.0f;
@@ -328,8 +375,8 @@ void Window::onUpdate()
 
   // Atualiza a posição da Pokébola
   updatePokeballPosition();
-  glm::vec3 sunPosition{-1.0f, 2.5f, -6.5f};
-  glm::vec4 sunColor{1.0f, 1.0f, 0.0f, 1.0f};
+  glm::vec3 sunPosition{-1.0f, 10.0f, -6.5f};
+  glm::vec4 sunColor{0.5f, 0.5f, 0.0f, 1.0f};
 
   m_ground.update(sunColor, sunPosition);
 }
@@ -360,31 +407,24 @@ void Window::launchPokeball()
 
 void Window::updatePokeballPosition()
 {
-  if (m_pokeball_render.getPokeballLaunched())
+  if (m_pokeball_render.getPokeballLaunched() && m_currentState != PokemonState::Captured)
   {
     auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
-
-    // Atualize a componente vertical da velocidade devido à gravidade
-    m_pokeballVelocity.y += GRAVITY * deltaTime;
-
-    // Atualize a posição da pokebola
-    m_pokeballPosition += m_pokeballVelocity * deltaTime;
-
     const float pokeballRadius = m_pokeball_render.getPokeballRadius();
-    const float pokemonRadius = 0.5f;
-
-    m_pokeballPosition += m_pokeballVelocity * deltaTime;
-
-    fmt::print("Pokeball pos {} {} {} radius {}\n", m_pokeballPosition.x, m_pokeballPosition.y, m_pokeballPosition.z, pokeballRadius);
 
     if (m_currentState != PokemonState::Captured)
+    {
+      m_pokeballVelocity.y += GRAVITY * deltaTime;
+
+      m_pokeballPosition += m_pokeballVelocity * deltaTime;
       m_pokeball_render.setPosition(m_pokeballPosition);
+    }
 
     // Verifica se saiu da tela
-    if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
-        (m_pokeballPosition.x - pokeballRadius) > 5.0f ||
-        (m_pokeballPosition.z - pokeballRadius) < -5.0f ||
-        (m_pokeballPosition.z - pokeballRadius) > 5.0f ||
+    if ((m_pokeballPosition.x - pokeballRadius) < -10.0f ||
+        (m_pokeballPosition.x - pokeballRadius) > 10.0f ||
+        (m_pokeballPosition.z - pokeballRadius) < -10.0f ||
+        (m_pokeballPosition.z - pokeballRadius) > 10.0f ||
         (m_pokeballPosition.y - pokeballRadius) < 0.0f)
     {
       m_pokeball_render.setPokeballLaunched(false);
@@ -398,31 +438,41 @@ void Window::updatePokeballPosition()
     {
       if (pokemon.getPokemonCaptured() == false)
       {
-        float distance = glm::distance(m_pokeballPosition, pokemon.getPosition());
+        // float distance = glm::distance(m_pokeballPosition, pokemon.getPosition());
 
-        if ((distance - pokemonRadius - pokeballRadius) < 0.02f)
+        // Altura e largura do pokemon
+        const float pokemonHeight = pokemon.getPokemonHeight();
+        const float pokemonWidth = pokemon.getPokemonWidth();
+        // verifica se a pokebola está dentro do paralelepipedo do pokemon considerando todos os eixos
+
+        if ((m_pokeballPosition.x - pokeballRadius) > (pokemon.getPosition().x - pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.x - pokeballRadius) < (pokemon.getPosition().x + pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.y - pokeballRadius) > (pokemon.getPosition().y - pokemonHeight / 2.0f) &&
+            (m_pokeballPosition.y - pokeballRadius) < (pokemon.getPosition().y + pokemonHeight / 2.0f) &&
+            (m_pokeballPosition.z - pokeballRadius) > (pokemon.getPosition().z - pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.z - pokeballRadius) < (pokemon.getPosition().z + pokemonWidth / 2.0f))
         {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon!\n");
-          m_pokeball_render.setPosition(m_camera.getEyePosition());
 
           // probabilidade de captura 45%
           std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
 
           if (rd_poke_capture(m_randomEngine) < 0.45f)
           {
+            m_currentState = PokemonState::Captured;
+
             pokemon.setPokemonCaptured(true);
             m_pokedex_pokemons.insert(pokemon.getPokemonName());
 
-            m_currentState = PokemonState::Captured;
             glm::vec3 current_pokemon_pos = pokemon.getPosition();
 
-            // Ajustar a posição da pokebola para ficar no centro do pokemon
             m_pokeball_render.setPosition(glm::vec3(current_pokemon_pos.x, m_pokeball_render.getPokeballRadius(), current_pokemon_pos.z));
           }
-          else
+          else if (m_currentState != PokemonState::Captured)
           {
             m_currentState = PokemonState::Escaped;
+            m_pokeball_render.setPosition(m_camera.getEyePosition());
             m_pokeball_render.setPokeballLaunched(false);
           }
 
@@ -441,13 +491,31 @@ void Window::backToLive()
 
 void Window::restartGame()
 {
-  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
+  std::uniform_real_distribution<float> rd_poke_position(-8.5f, 8.5f);
 
   for (auto &pokemon : pokemons_spawned)
   {
     pokemon.setPokemonCaptured(false);
-    pokemon.setPosition(glm::vec3(rd_poke_position(m_randomEngine), pokemon.getPosition().y,
-                                  rd_poke_position(m_randomEngine)));
+
+    glm::vec3 position;
+    bool positionIsValid = false;
+    while (!positionIsValid)
+    {
+      position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), pokemon.getPosition().y,
+                           safeGuard(rd_poke_position(m_randomEngine)));
+
+      positionIsValid = true;
+      for (const auto &otherPokemon : pokemons_spawned)
+      {
+        if (&otherPokemon != &pokemon && glm::distance(position, otherPokemon.getPosition()) < 1.0f)
+        {
+          positionIsValid = false;
+          break;
+        }
+      }
+    }
+
+    pokemon.setPosition(position);
 
     m_pokedex_pokemons.clear();
 

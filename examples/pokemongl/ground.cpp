@@ -80,7 +80,7 @@ void Ground::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model) {
   abcg::glUniform1f(shininessLoc, shininess);
 
   // Criamos um tapete de placas de 0,5 por 0,5 (ground.obj) com as translações
-  auto const N{5};
+  auto const N{10};
   for (auto const z : iter::range(-N, N + 1)) {
     for (auto const x : iter::range(-N - 3, N + 4)) {
 

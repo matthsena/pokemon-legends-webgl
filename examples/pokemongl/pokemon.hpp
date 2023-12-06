@@ -3,6 +3,7 @@
 
 #include "abcgOpenGL.hpp"
 #include "model.hpp"
+#include "globals.hpp"
 #include <regex>
 
 class Pokemon
@@ -15,6 +16,7 @@ public:
   bool getPokemonCaptured();
   void setPokemonCaptured(bool captured);
 
+
   // Posição do pokemon
   glm::vec3 getPosition() const { return m_position; }
   void setPosition(glm::vec3 position) { m_position = position; }
@@ -23,7 +25,22 @@ public:
   std::string getPokemonName() const { return m_pokemonName; }
   void setPokemonName(std::string name);
 
+  // Raio do pokemon
+  float getPokemonRadius() const { return m_pokemon_radius; }
+
+  float getPokemonWidth() const { return m_pokemon_width; }
+  float getPokemonHeight() const { return m_pokemon_height; }
+
+  bool getInPokebell() { return inPokebell; }
+
 private:
+  Globals g;
+
+  float m_pokemon_radius{0};
+
+  float m_pokemon_width{0};
+  float m_pokemon_height{0};
+
   GLuint m_VAO{};
   GLuint m_VBO{};
   GLuint m_EBO{};
@@ -53,8 +70,9 @@ private:
   std::string m_pokemonName;
   int frameTimer{0};
 
-  float h{0};
   float y{0};
+
+  bool inPokebell{false};
 };
 
 #endif

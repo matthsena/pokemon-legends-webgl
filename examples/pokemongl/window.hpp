@@ -7,6 +7,7 @@
 #include "ground.hpp"
 #include "pokemon.hpp"
 #include "pokeball.hpp"
+#include "globals.hpp"
 
 #include <chrono>
 #include <random>
@@ -27,14 +28,23 @@ protected:
   void onUpdate() override;
 
 private:
+  Globals g;
+
   GLuint m_tutorialTexture;
   bool m_showTutorial{true};
 
   std::vector<Pokemon> pokemons_spawned; // pokemons que já foram spawnados
 
-  std::vector<std::string> m_modelPaths = {"pokemons/Charmander.obj", "pokemons/Bulbasaur.obj"};
+  std::vector<std::string> m_modelPaths = {
+      "pokemons/Charmander.obj",
+      "pokemons/Bulbasaur.obj",
+      "pokemons/Squirtle.obj",
+      "pokemons/PikachuM.obj"};
+      // "pokemons/Blastoise.obj",
+      // "pokemons/VenusaurM.obj",
+      // "pokemons/Charizard.obj",
 
-  int m_num_pokemons{5};
+  int m_num_pokemons{20};
   // MIRA
   glm::vec2 m_miraPosition{0, 0};
   // // GRAVIDADE
@@ -93,6 +103,8 @@ private:
 
   void backToLive();
   void restartGame();
+
+  float safeGuard(float position);
 
   int frameTimer{0};
 };

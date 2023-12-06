@@ -44,16 +44,6 @@ void Pokeball::destroy()
     abcg::glDeleteVertexArrays(1, &m_VAO);
 }
 
-bool Pokeball::getPokemonCaptured()
-{
-    return m_captured;
-}
-
-void Pokeball::setPokemonCaptured(bool captured)
-{
-    m_captured = captured;
-}
-
 void Pokeball::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 position)
 {
 
