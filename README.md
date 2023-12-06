@@ -1,4 +1,4 @@
-# COMPUTAÇÃO GRÁFICA - Aplicação Interativa 2D
+# COMPUTAÇÃO GRÁFICA - Aplicação Interativa 3D
 
 ## Integrantes 
 
@@ -8,12 +8,13 @@
 
 ## Link para WebAssembly
 
-https://matthsena.github.io/pokemon-gl/pokemon-gl/
+https://matthsena.github.io/pokemon-legends-webgl/pokemon-gl/
 
 ## Resumo da aplicação
 
-O projeto `pokemon-gl` teve como inspiração o jogo Pokémon GO, muito jogado desde seu lançamento em 2016.
-Neste projeto, o usuário da aplicação está em um cenário em primeira pessoa, onde ele procura Pokémons pelo espaço e faz o lançamento de pokebolas sob eles, podendo fazer a captura das espécies. Como base para a construção foi utilizado o projeto LookAt demonstrado durantes as aulas.  
+O projeto `pokemon-legends-webgl` é uma evolução do segundo projeto `pokemon-gl` e também teve como inspiração o jogo Pokémon GO, muito jogado desde seu lançamento em 2016.
+Neste projeto, o usuário da aplicação está em um cenário em primeira pessoa, onde ele procura Pokémons pelo espaço e faz o lançamento de pokebolas sob eles, podendo fazer a captura das espécies. 
+Como evolução, nesta versão trouxemos um cenário com iluminação e textura, adicionando melhorias na jogabilidade fazendo a implementação de um menu Help, mira para a Pokebola na captura de Pokemon e gravidade no cenário onde a Pokebola é arremessada. Também foram realizadas melhorias quanto o objeto da Pokebola e a animação pós captura de um Pokémon.
 
 ![Alt text](image.png)
 
@@ -34,6 +35,12 @@ ESPAÇO: Dispara a Pokébola
 **W / Seta para cima**: Movimenta para frente
 
 **S / Seta para baixo**: Movimenta para trás
+
+**I**: Movimenta a mira para cima
+
+**J**: Movimenta a mira para baixo
+
+**H**: Abre o menu "Help"
 
 
 ## Visão geral da implementação:
@@ -71,6 +78,10 @@ std::unordered_map<std::string, Pokemon> m_pokemons_list;
   std::vector<std::string> m_modelPaths = {"charmander.obj", "bulbasaur.obj"};
 ```
 
+`m_miraPosition`: Variável que inicializa a mira na posição correta {0, 0}.
+
+`GRAVITY`: Variável que define a gravidade sob o lançamento da pokebola.
+
 `m_font`: Variável utilizada para a renderização dos textos que são apresentados na tela (Escapou!, Capturado!, Jogo Reiniciado)
 
 
@@ -79,6 +90,7 @@ std::unordered_map<std::string, Pokemon> m_pokemons_list;
 O arquivo window.cpp é composto pelas funções utilizadas para a construção lógica da aplicação renderizada. Abaixo segue um resumo descritivo de cada função presente no arquivo:
 
 `onEvent`: Função que manipula os eventos SDL, como pressionar as teclas do teclado. 
+I e K: Move a mira para cima e para baixo. Também foi adicionado um max e min para restringir a mira dentro da tela
 Espaço: Lança a pokébola através da chamada de `launchPokeball`
 R: Reinicia o jogo através da chamada de `restartGameThread` 
 B: Abre o Pokédex com a listagem de Pokémons capturados a partir de `m_showPokedex`
@@ -215,7 +227,35 @@ Window::loadModelFromFile(std::string_view path) {
   }
 ```
 
-`onPaintUI`: Define uma interface de usuário (UI) usando a biblioteca ImGui. A ImGui é utizada no `onPaintUI` para exibir as frases na tela durante a execução da aplicação, conforme o código abaixo:
+`onPaintUI`: Define uma interface de usuário (UI) usando a biblioteca ImGui. 
+
+A mira é renderizada através da definição de variáveis como `miraRadius` que define o raio da mira e `miraColor`que define a cor da mira. Abaixo temos o código onde na primeira etapa as variáveis são definidas e na segunda etapa o desenho da mira é renderizado:
+
+```c++
+   {
+      float miraRadius = 10.0f;
+      ImU32 miraColor = IM_COL32(255, 0, 0, 255);
+      float lineThickness = 2.0f;
+      ImVec2 center(m_viewportSize.x / 2.0f, m_miraPosition.y / 2.0f);
+
+      // Ajustar o tamanho da janela para garantir que a mira caiba completamente
+      ImVec2 windowSize = ImVec2(miraRadius * 4, miraRadius * 4);
+      ImVec2 windowPos = ImVec2(center.x - windowSize.x / 2, center.y - windowSize.y / 2);
+
+      ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+      ImGui::SetNextWindowSize(windowSize);
+      ImGui::SetNextWindowBgAlpha(0);
+
+      ImGui::Begin("MiraWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
+      ImDrawList *drawList = ImGui::GetWindowDrawList();
+
+      drawList->AddCircle(center, miraRadius, miraColor, 0, lineThickness);
+
+      ImGui::End();
+    }
+```
+
+A ImGui é utizada no `onPaintUI` para exibir as frases na tela durante a execução da aplicação, conforme o código abaixo:
 
 ```c++
     if (m_currentState == PokemonState::Captured) {
