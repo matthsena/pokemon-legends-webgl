@@ -45,7 +45,7 @@ ESPAÇO: Dispara a Pokébola
 
 ## Visão geral da implementação:
 
-* window.hpp:
+## window.hpp:
 
 A classe Window é definida e herda da classe abcg::OpenGLWindow, que é uma parte da biblioteca abcgOpenGL para criar janelas gráficas.
 
@@ -308,9 +308,13 @@ A ImGui é utizada no `onPaintUI` para exibir as frases na tela durante a execu�
 
 O arquivo main.cpp inicia a aplicação, criando uma instância da classe Window e realizando as configurações da janela de exibição (width, height, title). Em seguida, inicia a aplicação com `app.run(window)`.
 
+## model.cpp:
+
+O arquivo model.cpp implementa a classe Model que foi criada para fazer o gerenciamento e renderização dos modelos 3D. Aqui foram criadas funções para definição de VBOs e EBOs para armazenar vértices e índices de um modelo (`createBuffers`), o carregamento de um modelo 3D a partir de um .obj (`loadObj`), a renderização do modelo (`render`), aplicação de textura (`renderTexture`), carregamento de uma textura associando um texture ID (`loadDiffuseTexture`), configuração do VAO para o modelo (`setupVAO`), normalização dos modelos para estarem de acordo com o espaço de coordenadas (`standardize`) e para calcular as normais dos vértices, garantindo a iluminação correta (`computeNormals`).
+
 ## ground.cpp:
 
-O arquivo ground.cpp é composto pelas funções utilizadas na classe Ground, que são utilizadas para criar o VAO e VBO do chão.
+O arquivo ground.cpp é composto pelas funções utilizadas na classe Ground, que são utilizadas para criar o VAO e VBO do chão (10x10). Aqui estamos fazendo a renderização da textura do terreno com um arquivo ground.png que é carregado partir da função `Ground::create` e renderizado no cenário a partir da função`Ground::paint`. A atualização da iluminação através da função `Ground::update`, onde é configurada a posição da luz pela variável `lightPos`, o brilho pela variável `shininess` e `Is` definida pela cor da luz especular.
 
 ## ground.hpp: 
 
@@ -319,6 +323,11 @@ O arquivo ground.hpp define a classe Ground que é utilizada para criação e re
 ## camera.cpp: 
 
 O arquivo camera.cpp é composto pelas funções utilizadas na classe Camera para calcular as matrizes de projeção e visualização, bem como manipular a posição e orientação da câmera.
+Para a classe Camera, foi realizado um aumento do campo de visão através do aumento do volume de visualização, onde podemos enxergar mais Pokémons ao redor, conforme imagem abaixo:
+
+![Alt text](image-1.png)
+
+
 
 ## camera.hpp:
 
