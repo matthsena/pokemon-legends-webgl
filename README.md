@@ -16,7 +16,7 @@ O projeto `pokemon-legends-webgl` é uma evolução do segundo projeto `pokemon-
 Neste projeto, o usuário da aplicação está em um cenário em primeira pessoa, onde ele procura Pokémons pelo espaço e faz o lançamento de pokebolas sob eles, podendo fazer a captura das espécies. 
 Como evolução, nesta versão trouxemos um cenário com iluminação e textura, adicionando melhorias na jogabilidade fazendo a implementação de um menu Help, mira para a Pokebola na captura de Pokemon e gravidade no cenário onde a Pokebola é arremessada. Também foram realizadas melhorias quanto o objeto da Pokebola e a animação pós captura de um Pokémon.
 
-![Alt text](image-3.png)
+!![Alt text](image-4.png)
 
 Para este projeto, foi utilizado a biblioteca `ABCg` (https://github.com/hbatagelo/abcg) disponibilizada no curso de Computação Gráfica 2023.3 na Universidade Federal do ABC.  
 
@@ -45,7 +45,7 @@ ESPAÇO: Dispara a Pokébola
 
 ## MENU DE AJUDA
 
-![Alt text](image-4.png)
+![Alt text](image-3.png)
 
 
 ## Visão geral da implementação:
