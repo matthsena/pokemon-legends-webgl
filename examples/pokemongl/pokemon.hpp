@@ -31,7 +31,6 @@ public:
   float getPokemonWidth() const { return m_pokemon_width; }
   float getPokemonHeight() const { return m_pokemon_height; }
 
-  void setInPokebell(bool inPokebell) {  inPokebell = inPokebell; }
   bool getInPokebell() { return inPokebell; }
 
 private:

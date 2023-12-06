@@ -36,13 +36,13 @@ private:
   std::vector<Pokemon> pokemons_spawned; // pokemons que já foram spawnados
 
   std::vector<std::string> m_modelPaths = {
-      "pokemons/Blastoise.obj",
       "pokemons/Charmander.obj",
-      "pokemons/VenusaurM.obj",
       "pokemons/Bulbasaur.obj",
       "pokemons/Squirtle.obj",
-      "pokemons/Charizard.obj",
       "pokemons/PikachuM.obj"};
+      // "pokemons/Blastoise.obj",
+      // "pokemons/VenusaurM.obj",
+      // "pokemons/Charizard.obj",
 
   int m_num_pokemons{20};
   // MIRA

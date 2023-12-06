@@ -64,7 +64,10 @@ void Pokemon::setPokemonName(std::string name)
 {
     // regex para remover ".obj" do nome
     std::regex e(".obj");
+    std::regex n("pokemons/");
+    
     m_pokemonName = std::regex_replace(name, e, "");
+    m_pokemonName = std::regex_replace(m_pokemonName, n, "");
 }
 
 bool Pokemon::getPokemonCaptured()
