@@ -117,37 +117,29 @@ void Window::onCreate()
   m_randomEngine.seed(
       std::chrono::steady_clock::now().time_since_epoch().count());
 
-  std::uniform_real_distribution<float> rd_poke_position(-10.0f, 10.0f);
+  std::uniform_real_distribution<float> rd_poke_position(-8.5f, 8.5f);
   std::uniform_int_distribution<int> rd_poke_model(0, m_modelPaths.size() - 1);
 
   // inicializando pokemons
   for (int i = 0; i < m_num_pokemons; ++i)
   {
     std::string objFile = m_modelPaths[rd_poke_model(m_randomEngine)];
-    glm::vec3 position = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                   rd_poke_position(m_randomEngine));
+    glm::vec3 position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), 0,
+                                   safeGuard(rd_poke_position(m_randomEngine)));
     Pokemon pokemon;
-    pokemon.create(m_model, assetsPath, objFile, safeGuard(position));
+    pokemon.create(m_model, assetsPath, objFile, position);
 
     pokemons_spawned.push_back(pokemon);
   }
 }
 
-glm::vec3 Window::safeGuard(glm::vec3 position)
+float Window::safeGuard(float x)
 {
-  if (position.x < 2.5f)
-    position.x += 2.5f;
+  if (x > 0.0f) {
+    return x + 1.5f;
+  }
 
-  if (position.x < -2.5f)
-    position.x -= 2.5f;
-
-  if (position.z < 2.5f)
-    position.z += 2.5f;
-
-  if (position.z < -2.5f)
-    position.z -= 2.5f;
-
-  return position;
+  return x - 1.5f;
 }
 
 void Window::onPaint()
@@ -366,8 +358,8 @@ void Window::onUpdate()
 
   // Atualiza a posição da Pokébola
   updatePokeballPosition();
-  glm::vec3 sunPosition{-1.0f, 2.5f, -6.5f};
-  glm::vec4 sunColor{1.0f, 1.0f, 0.0f, 1.0f};
+  glm::vec3 sunPosition{-1.0f, 10.0f, -6.5f};
+  glm::vec4 sunColor{0.5f, 0.5f, 0.0f, 1.0f};
 
   m_ground.update(sunColor, sunPosition);
 }
@@ -482,13 +474,13 @@ void Window::backToLive()
 
 void Window::restartGame()
 {
-  std::uniform_real_distribution<float> rd_poke_position(-10.0f, 10.0f);
+  std::uniform_real_distribution<float> rd_poke_position(-8.5f, 8.5f);
 
   for (auto &pokemon : pokemons_spawned)
   {
     pokemon.setPokemonCaptured(false);
-    glm::vec3 position = safeGuard(glm::vec3(rd_poke_position(m_randomEngine), pokemon.getPosition().y,
-                                             rd_poke_position(m_randomEngine)));
+    glm::vec3 position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), pokemon.getPosition().y,
+                                             safeGuard(rd_poke_position(m_randomEngine)));
 
     pokemon.setPosition(position);
 

@@ -107,7 +107,7 @@ private:
   void backToLive();
   void restartGame();
 
-  glm::vec3 safeGuard(glm::vec3 position);
+  float safeGuard(float position);
 
   int frameTimer{0};
 };
