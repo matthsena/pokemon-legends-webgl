@@ -16,7 +16,7 @@ O projeto `pokemon-legends-webgl` é uma evolução do segundo projeto `pokemon-
 Neste projeto, o usuário da aplicação está em um cenário em primeira pessoa, onde ele procura Pokémons pelo espaço e faz o lançamento de pokebolas sob eles, podendo fazer a captura das espécies. 
 Como evolução, nesta versão trouxemos um cenário com iluminação e textura, adicionando melhorias na jogabilidade fazendo a implementação de um menu Help, mira para a Pokebola na captura de Pokemon e gravidade no cenário onde a Pokebola é arremessada. Também foram realizadas melhorias quanto o objeto da Pokebola e a animação pós captura de um Pokémon.
 
-![Alt text](image.png)
+![Alt text](image-3.png)
 
 Para este projeto, foi utilizado a biblioteca `ABCg` (https://github.com/hbatagelo/abcg) disponibilizada no curso de Computação Gráfica 2023.3 na Universidade Federal do ABC.  
 
@@ -41,6 +41,11 @@ ESPAÇO: Dispara a Pokébola
 **J**: Movimenta a mira para baixo
 
 **H**: Abre o menu "Help"
+
+
+## MENU DE AJUDA
+
+![Alt text](image-4.png)
 
 
 ## Visão geral da implementação:
@@ -199,6 +204,42 @@ Window::loadModelFromFile(std::string_view path) {
 }
 ```
 
+`safeGuard`: Função que garante que os objetos não serão renderizados na posição 0. Foi aplicado 1.5 e -1.5f no x para garantir que não exista nenhum confronto entre objetos e a câmera em primeira pessoa.
+
+
+Também foi criado um conceito de safeRender na aplicação. A ideia é evitar que um Pokémon seja gerado em cima de outro Pokémon. Quando geramos um Pokémon também é gerada uma posição aleatória para ele. A partir dessa posição é verificado se não conflita com as posições dos Pokémons existentes, fazendo a verificação através da função `distance`. Caso tenha uma posição menor que 1, geramos uma nova distância aleatória até não existir esse conflito de distâncias. O trecho de código abaixo exemplifica o método:
+
+```c++
+ // inicializando pokemons
+  for (int i = 0; i < m_num_pokemons; ++i)
+  {
+    std::string objFile = m_modelPaths[rd_poke_model(m_randomEngine)];
+    glm::vec3 position;
+
+    bool positionIsValid = false;
+    while (!positionIsValid)
+    {
+      position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), 0,
+                           safeGuard(rd_poke_position(m_randomEngine)));
+
+      positionIsValid = true;
+      for (const auto &pokemon : pokemons_spawned)
+      {
+        if (glm::distance(position, pokemon.getPosition()) < 1.0f)
+        {
+          positionIsValid = false;
+          break;
+        }
+      }
+    }
+
+    Pokemon pokemon;
+    pokemon.create(m_model, assetsPath, objFile, position);
+
+    pokemons_spawned.push_back(pokemon);
+  }
+```
+
 
 `onPaint`: Função que renderiza a cena, utilizando shaders para renderizar os Pokémons, a Pokébola e o chão. A renderização de cada Pokémon acontece conforme o código abaixo:
 
@@ -300,6 +341,58 @@ A ImGui é utizada no `onPaintUI` para exibir as frases na tela durante a execu�
 
 `updatePokeballPosition`: Atualiza a posição da Pokébola durante o movimento.
 
+Uma das grandes novidades é a definição de probabilidade para a captura de um Pokémon quando você acerta a Pokébola dentro de um paralelepípedo construído em torno do Pokémon. O código abaixo realiza as verificações com base nos dados de altura e largura do Pokémon que são usados para definir esse paralelepípedo:
+
+```c++
+    // Verifica se colidiu com algum pokemon
+    for (auto &pokemon : pokemons_spawned)
+    {
+      if (pokemon.getPokemonCaptured() == false)
+      {
+        // float distance = glm::distance(m_pokeballPosition, pokemon.getPosition());
+
+        // Altura e largura do pokemon
+        const float pokemonHeight = pokemon.getPokemonHeight();
+        const float pokemonWidth = pokemon.getPokemonWidth();
+        // verifica se a pokebola está dentro do paralelepipedo do pokemon considerando todos os eixos
+
+        if ((m_pokeballPosition.x - pokeballRadius) > (pokemon.getPosition().x - pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.x - pokeballRadius) < (pokemon.getPosition().x + pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.y - pokeballRadius) > (pokemon.getPosition().y - pokemonHeight / 2.0f) &&
+            (m_pokeballPosition.y - pokeballRadius) < (pokemon.getPosition().y + pokemonHeight / 2.0f) &&
+            (m_pokeballPosition.z - pokeballRadius) > (pokemon.getPosition().z - pokemonWidth / 2.0f) &&
+            (m_pokeballPosition.z - pokeballRadius) < (pokemon.getPosition().z + pokemonWidth / 2.0f))
+        {
+          // Colisão detectada
+          fmt::print("Pokébola colidiu com Pokémon!\n");
+
+          // probabilidade de captura 45%
+          std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
+
+          if (rd_poke_capture(m_randomEngine) < 0.45f)
+          {
+            m_currentState = PokemonState::Captured;
+
+            pokemon.setPokemonCaptured(true);
+            m_pokedex_pokemons.insert(pokemon.getPokemonName());
+
+            glm::vec3 current_pokemon_pos = pokemon.getPosition();
+
+            m_pokeball_render.setPosition(glm::vec3(current_pokemon_pos.x, m_pokeball_render.getPokeballRadius(), current_pokemon_pos.z));
+          }
+          else if (m_currentState != PokemonState::Captured)
+          {
+            m_currentState = PokemonState::Escaped;
+            m_pokeball_render.setPosition(m_camera.getEyePosition());
+            m_pokeball_render.setPokeballLaunched(false);
+          }
+
+          break;
+        }
+      }
+    }
+```
+
 `backToLive`: Utilizada para atualizar as informações do jogo em tempo de execução.
 
 `restartGame`: Chamada para reiniciar o jogo.
@@ -399,10 +492,35 @@ O `arquivo pokeball.hpp` define a classe Pokeball que possui os atributos da Pok
 ## pokemon.cpp:
 
 O arquivo `pokemon.cpp` define as funções utilizadas para o gerenciamento, renderização e interação dos Pokémons dentro da aplicação. O método `create` inicializa criando shaders de vértices e fragmentos para a textura do Pokémon, carrega os modelos de Pokémon e textura para quando ele está no jogo e para quando for capturado (arquivo captured.pnj), deixando-o com uma aparência toda avermelhada.
+
 Também temos a função `setPokemonName` que extrai o nome dos Pokémons a partir do arquivo .obj, e a partir disso é definido as características do Pokémon.
 A função `Paint` implementa as renderizações e texturas que dão o efeito de animação quando um Pokémon foi capturado. Ele aplica um efeito de escala diminuindo gradualmente quando o Pokémon é capturado e mudança da sua textura.
 
 ## pokemon.hpp:
 
 O arquivo `pokemon.hpp` define a classe Pokemon que possui os métodos de gerenciamento e trasnformações entre a renderização de um Pokémon no cenário de origem e durante sua captura.
+O dimensionamento do Pokémon para posterior utilização desses dados nos métodos de captura é definido no seguinte trecho de código, onde é definido altura, largura e raio do Pokémon:
+
+```c++
+ float getPokemonWidth() const { return m_pokemon_width; }
+  float getPokemonHeight() const { return m_pokemon_height; }
+
+  bool getInPokebell() { return inPokebell; }
+
+private:
+  Globals g;
+
+  float m_pokemon_radius{0};
+
+  float m_pokemon_width{0};
+  float m_pokemon_height{0};
+
+  GLuint m_VAO{};
+  GLuint m_VBO{};
+  GLuint m_EBO{};
+  GLuint m_pokemon_program{};
+
+  GLuint m_diffuse_texture{};
+  GLuint m_captured_texture{};
+```
  
