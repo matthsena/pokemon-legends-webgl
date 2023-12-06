@@ -14,15 +14,17 @@ https://matthsena.github.io/pokemon-legends-webgl/pokemon-gl/
 
 O projeto `pokemon-legends-webgl` é uma evolução do segundo projeto `pokemon-gl` e também teve como inspiração o jogo Pokémon GO, muito jogado desde seu lançamento em 2016.
 Neste projeto, o usuário da aplicação está em um cenário em primeira pessoa, onde ele procura Pokémons pelo espaço e faz o lançamento de pokebolas sob eles, podendo fazer a captura das espécies. 
-Como evolução, nesta versão trouxemos um cenário com iluminação e textura, adicionando melhorias na jogabilidade fazendo a implementação de um menu Help, mira para a Pokebola na captura de Pokemon e gravidade no cenário onde a Pokebola é arremessada. Também foram realizadas melhorias quanto o objeto da Pokebola e a animação pós captura de um Pokémon.
+Como evolução, nesta versão trouxemos um cenário com **iluminação** e **textura**, adicionando melhorias na jogabilidade fazendo a implementação de um **menu Help**, **mira** para a Pokebola na captura de Pokemon e **gravidade** no cenário onde a Pokebola é arremessada. Também foram realizadas melhorias quanto o objeto da Pokebola e a **animação pós captura de um Pokémon**.
 
-![Alt text](image.png)
+![Aparencia da tela inicial do jogo, com o menu de ajuda aparecendo em primeiro plano](image-home.png)
 
-Para este projeto, foi utilizado a biblioteca `ABCg` (https://github.com/hbatagelo/abcg) disponibilizada no curso de Computação Gráfica 2023.3 na Universidade Federal do ABC.  
+Para este projeto, foi utilizado a biblioteca `ABCg` (https://github.com/hbatagelo/abcg) disponibilizada no curso de Computação Gráfica 2023.3 na Universidade Federal do ABC.
+
+**OBS:** Todas as texturas do projeto foram feitas manualmente com auxilio do software GIMP, pois as texturas prontas não corresponderam ao que se esperava, mesmo com alterações nos shaders.
 
 ## Comandos
 
-ESPAÇO: Dispara a Pokébola
+**ESPAÇO**: Dispara a Pokébola
 
 **R**: Reinicia o jogo
 
@@ -314,7 +316,7 @@ O arquivo model.cpp implementa as funções da classe Model, que foi criada para
 
 ## model.hpp:
 
-O arquivo `model.hpp` define a classe Model, utilizada para o gerenciamento e renderização de modelos 3D.
+O arquivo `model.hpp` define a classe Model, utilizada para o gerenciamento e renderização de modelos 3D. Alternativa melhor a aplicada no projeto 2, onde tinhamos diversas variáveis com os vertices, indices, VBO, EBO, VAO e etc de cada elemento que queriamos renderizar, essa classe permite um melhor reaproveitamento do código.
 
 ## globals.hpp:
 
@@ -336,7 +338,9 @@ class Globals
 
 ## ground.cpp:
 
-O arquivo ground.cpp é composto pelas funções utilizadas na classe Ground, que são utilizadas para criar o VAO e VBO do chão (10x10). Aqui estamos fazendo a renderização da textura do terreno com um arquivo ground.png que é carregado partir da função `Ground::create` e renderizado no cenário a partir da função`Ground::paint`. A atualização da iluminação através da função `Ground::update`, onde é configurada a posição da luz pela variável `lightPos`, o brilho pela variável `shininess` e `Is` definida pela cor da luz especular.
+O arquivo `ground.cpp` é composto pelas funções utilizadas na classe Ground, que são utilizadas para renderizar o chão (10x10). Aqui estamos fazendo a renderização da textura do terreno com um arquivo `ground.png` que é carregado partir da função `Ground::create` e renderizado no cenário a partir da função`Ground::paint`. A atualização da iluminação através da função `Ground::update`, onde é configurada a posição da luz pela variável `lightPos`, o brilho pela variável `shininess` e `Is` definida pela cor da luz especular.
+
+![Textura aplicada no ground](examples/pokemongl/assets/ground.png)
 
 ## ground.hpp: 
 
@@ -344,8 +348,12 @@ O arquivo ground.hpp define a classe Ground que é utilizada para criação e re
 
 ## camera.cpp: 
 
-O arquivo camera.cpp é composto pelas funções utilizadas na classe Camera para calcular as matrizes de projeção e visualização, bem como manipular a posição e orientação da câmera.
+O arquivo `camera.cpp` é composto pelas funções utilizadas na classe Camera para calcular as matrizes de projeção e visualização, bem como manipular a posição e orientação da câmera.
 Para a classe Camera, foi realizado um aumento do campo de visão através do aumento do volume de visualização, onde podemos enxergar mais Pokémons ao redor, conforme imagem abaixo:
+
+```c++
+  m_projMatrix = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 20.0f);
+```
 
 ![Alt text](image-1.png)
 
@@ -385,11 +393,9 @@ void Window::launchPokeball() {
 
 ## pokeball.cpp:
 
-O arquivo `pokeball.cpp` define as funções utilizadas para o gerenciamento e renderização da Pokebola, onde temos a função de criação que utiliza do `loadObj` para carregar o .obk da Pokebola, `setupVAO` definindo os VBOs, EBOs e VAO e `loadDiffuseTexture` carregando uma textura através do arquivo pokeball.pnj:
+O arquivo `pokeball.cpp` define as funções utilizadas para o gerenciamento e renderização da Pokebola, onde temos a função de criação que utiliza do `loadObj` para carregar o .obk da Pokebola, `setupVAO` definindo os VBOs, EBOs e VAO e `loadDiffuseTexture` carregando uma textura através do arquivo pokeball.png:
 
 ![Alt text](image-2.png)
-
-OBS: Todas as texturas foram feitas manualmente, pois as texturas prontas não funcionaram tão bem mesmo com alterações nos shaders.
 
 ## pokeball.hpp:
 
@@ -398,9 +404,82 @@ O `arquivo pokeball.hpp` define a classe Pokeball que possui os atributos da Pok
 
 ## pokemon.cpp:
 
-O arquivo `pokemon.cpp` define as funções utilizadas para o gerenciamento, renderização e interação dos Pokémons dentro da aplicação. O método `create` inicializa criando shaders de vértices e fragmentos para a textura do Pokémon, carrega os modelos de Pokémon e textura para quando ele está no jogo e para quando for capturado (arquivo captured.pnj), deixando-o com uma aparência toda avermelhada.
+O arquivo `pokemon.cpp` define as funções utilizadas para o gerenciamento, renderização e interação dos Pokémons dentro da aplicação. O método `create` inicializa criando shaders de vértices e fragmentos para a textura do Pokémon, carrega os modelos de Pokémon e textura para quando ele está no jogo e para quando for capturado (arquivo captured.png), deixando-o com uma aparência toda avermelhada.
+
+``` c++
+    // ....
+    // ....
+    // carregamento no metodo create
+    
+    m_model.loadDiffuseTexture(assetsPath + objPath + ".png", &m_diffuse_texture);
+    m_model.loadDiffuseTexture(assetsPath + "captured.png", &m_captured_texture);
+
+    // Pega o tamanho do modelo para deixar y rente ao chao
+    float min_height = m_vertices[0].position.y;
+    float max_height = m_vertices[0].position.y;
+
+    float min_width = m_vertices[0].position.x;
+    float max_width = m_vertices[0].position.x;
+
+    for (const auto &vertex : m_vertices)
+    {
+        min_height = std::min(min_height, vertex.position.y);
+        max_height = std::max(max_height, vertex.position.y);
+
+        min_width = std::min(min_width, vertex.position.x);
+        max_width = std::max(max_width, vertex.position.x);
+    }
+
+    y = -min_height;
+
+    m_position = glm::vec3(position.x, -min_height, position.z);
+    setPokemonName(objPath);
+
+    m_pokemon_radius = ((max_width - min_width) / 2.0f);
+    m_pokemon_width = max_width - min_width;
+    m_pokemon_height = max_height - min_height;
+
+    // .... 
+    // ....
+    // troca de textura no metodo paint
+    
+    if (m_captured)
+    {
+        m_model.renderTexture(&m_indices, &m_VAO, m_captured_texture);
+    }
+    else
+    {
+        m_model.renderTexture(&m_indices, &m_VAO, m_diffuse_texture);
+    }
+    abcg::glUseProgram(0);
+```
+
 Também temos a função `setPokemonName` que extrai o nome dos Pokémons a partir do arquivo .obj, e a partir disso é definido as características do Pokémon.
 A função `Paint` implementa as renderizações e texturas que dão o efeito de animação quando um Pokémon foi capturado. Ele aplica um efeito de escala diminuindo gradualmente quando o Pokémon é capturado e mudança da sua textura.
+
+```c++
+    float newScale = 1.0f;
+
+    if (m_captured)
+    {
+        frameTimer += 1;
+
+        // 150 = 2.5s
+        if (frameTimer > (g.CATCH_FRAME_TIME / 2.0f))
+        {
+            destroy();
+            frameTimer = 0;
+        }
+        // diminui scale gradualmente
+        newScale = 1.0f - (frameTimer / (g.CATCH_FRAME_TIME / 2.0f));
+
+        // ajusta a posicao em Y
+        float heightDifference = (1.0f - newScale) * m_pokemon_height;
+        m_position.y = y - heightDifference / 2.0f;
+    }
+
+    model = glm::scale(model, glm::vec3(newScale));
+```
 
 ## pokemon.hpp:
 
