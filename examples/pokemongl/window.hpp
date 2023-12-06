@@ -38,16 +38,13 @@ private:
   std::vector<std::string> m_modelPaths = {
       "pokemons/Blastoise.obj",
       "pokemons/Charmander.obj",
-      "pokemons/Ivysaur.obj",
       "pokemons/VenusaurM.obj",
       "pokemons/Bulbasaur.obj",
-      "pokemons/Charmeleon.obj",
       "pokemons/Squirtle.obj",
       "pokemons/Charizard.obj",
-      "pokemons/Wartortle.obj",
       "pokemons/PikachuM.obj"};
 
-  int m_num_pokemons{50};
+  int m_num_pokemons{20};
   // MIRA
   glm::vec2 m_miraPosition{0, 0};
   // // GRAVIDADE

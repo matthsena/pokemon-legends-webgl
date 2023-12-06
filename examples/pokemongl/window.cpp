@@ -124,8 +124,25 @@ void Window::onCreate()
   for (int i = 0; i < m_num_pokemons; ++i)
   {
     std::string objFile = m_modelPaths[rd_poke_model(m_randomEngine)];
-    glm::vec3 position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), 0,
-                                   safeGuard(rd_poke_position(m_randomEngine)));
+    glm::vec3 position;
+
+    bool positionIsValid = false;
+    while (!positionIsValid)
+    {
+      position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), 0,
+                           safeGuard(rd_poke_position(m_randomEngine)));
+
+      positionIsValid = true;
+      for (const auto &pokemon : pokemons_spawned)
+      {
+        if (glm::distance(position, pokemon.getPosition()) < 1.0f)
+        {
+          positionIsValid = false;
+          break;
+        }
+      }
+    }
+
     Pokemon pokemon;
     pokemon.create(m_model, assetsPath, objFile, position);
 
@@ -479,8 +496,24 @@ void Window::restartGame()
   for (auto &pokemon : pokemons_spawned)
   {
     pokemon.setPokemonCaptured(false);
-    glm::vec3 position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), pokemon.getPosition().y,
-                                             safeGuard(rd_poke_position(m_randomEngine)));
+
+    glm::vec3 position;
+    bool positionIsValid = false;
+    while (!positionIsValid)
+    {
+      position = glm::vec3(safeGuard(rd_poke_position(m_randomEngine)), pokemon.getPosition().y,
+                           safeGuard(rd_poke_position(m_randomEngine)));
+
+      positionIsValid = true;
+      for (const auto &otherPokemon : pokemons_spawned)
+      {
+        if (&otherPokemon != &pokemon && glm::distance(position, otherPokemon.getPosition()) < 1.0f)
+        {
+          positionIsValid = false;
+          break;
+        }
+      }
+    }
 
     pokemon.setPosition(position);
 
