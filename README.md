@@ -310,7 +310,29 @@ O arquivo main.cpp inicia a aplicação, criando uma instância da classe Window
 
 ## model.cpp:
 
-O arquivo model.cpp implementa a classe Model que foi criada para fazer o gerenciamento e renderização dos modelos 3D. Aqui foram criadas funções para definição de VBOs e EBOs para armazenar vértices e índices de um modelo (`createBuffers`), o carregamento de um modelo 3D a partir de um .obj (`loadObj`), a renderização do modelo (`render`), aplicação de textura (`renderTexture`), carregamento de uma textura associando um texture ID (`loadDiffuseTexture`), configuração do VAO para o modelo (`setupVAO`), normalização dos modelos para estarem de acordo com o espaço de coordenadas (`standardize`) e para calcular as normais dos vértices, garantindo a iluminação correta (`computeNormals`).
+O arquivo model.cpp implementa as funções da classe Model, que foi criada para fazer o gerenciamento e renderização dos modelos 3D. Aqui foram criadas funções para definição de VBOs e EBOs para armazenar vértices e índices de um modelo (`createBuffers`), o carregamento de um modelo 3D a partir de um .obj (`loadObj`), a renderização do modelo (`render`), aplicação de textura (`renderTexture`), carregamento de uma textura associando um texture ID (`loadDiffuseTexture`), configuração do VAO para o modelo (`setupVAO`), normalização dos modelos para estarem de acordo com o espaço de coordenadas (`standardize`) e para calcular as normais dos vértices, garantindo a iluminação correta (`computeNormals`).
+
+## model.hpp:
+
+O arquivo `model.hpp` define a classe Model, utilizada para o gerenciamento e renderização de modelos 3D.
+
+## globals.hpp:
+
+O arquivo `globals.hpp` classe Globals para adicionar variáveis globais, como a CATCH_FRAME_TIME que diz quantos frames passam até concretizar a captura de um Pokémon:
+
+```c++
+#ifndef GLOBALS_HPP_
+#define GLOBALS_HPP_
+
+class Globals
+{
+  public:
+    const float CATCH_FRAME_TIME = 90.0f;
+};
+
+#endif
+```
+
 
 ## ground.cpp:
 
@@ -360,3 +382,27 @@ void Window::launchPokeball() {
   }
 }
 ```
+
+## pokeball.cpp:
+
+O arquivo `pokeball.cpp` define as funções utilizadas para o gerenciamento e renderização da Pokebola, onde temos a função de criação que utiliza do `loadObj` para carregar o .obk da Pokebola, `setupVAO` definindo os VBOs, EBOs e VAO e `loadDiffuseTexture` carregando uma textura através do arquivo pokeball.pnj:
+
+![Alt text](image-2.png)
+
+OBS: Todas as texturas foram feitas manualmente, pois as texturas prontas não funcionaram tão bem mesmo com alterações nos shaders.
+
+## pokeball.hpp:
+
+O `arquivo pokeball.hpp` define a classe Pokeball que possui os atributos da Pokebola, definindo iluminação, textura e rotação.
+
+
+## pokemon.cpp:
+
+O arquivo `pokemon.cpp` define as funções utilizadas para o gerenciamento, renderização e interação dos Pokémons dentro da aplicação. O método `create` inicializa criando shaders de vértices e fragmentos para a textura do Pokémon, carrega os modelos de Pokémon e textura para quando ele está no jogo e para quando for capturado (arquivo captured.pnj), deixando-o com uma aparência toda avermelhada.
+Também temos a função `setPokemonName` que extrai o nome dos Pokémons a partir do arquivo .obj, e a partir disso é definido as características do Pokémon.
+A função `Paint` implementa as renderizações e texturas que dão o efeito de animação quando um Pokémon foi capturado. Ele aplica um efeito de escala diminuindo gradualmente quando o Pokémon é capturado e mudança da sua textura.
+
+## pokemon.hpp:
+
+O arquivo `pokemon.hpp` define a classe Pokemon que possui os métodos de gerenciamento e trasnformações entre a renderização de um Pokémon no cenário de origem e durante sua captura.
+ 
