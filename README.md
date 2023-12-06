@@ -82,7 +82,11 @@ std::unordered_map<std::string, Pokemon> m_pokemons_list;
 
 `m_modelPaths`: Variável que armazena uma lista dos arquivos .obj que podem ser renderizados na aplicação de forma aleatória.
 ```c++
-  std::vector<std::string> m_modelPaths = {"charmander.obj", "bulbasaur.obj"};
+std::vector<std::string> m_modelPaths = {
+      "pokemons/Charmander.obj",
+      "pokemons/Bulbasaur.obj",
+      "pokemons/Squirtle.obj",
+      "pokemons/PikachuM.obj"};
 ```
 
 `m_miraPosition`: Variável que inicializa a mira na posição correta {0, 0}.
