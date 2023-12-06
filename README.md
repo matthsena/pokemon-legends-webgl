@@ -40,7 +40,7 @@ Para este projeto, foi utilizado a biblioteca `ABCg` (https://github.com/hbatage
 
 **I**: Movimenta a mira para cima
 
-**J**: Movimenta a mira para baixo
+**K**: Movimenta a mira para baixo
 
 **H**: Abre o menu "Help"
 
