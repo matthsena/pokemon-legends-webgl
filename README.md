@@ -58,28 +58,6 @@ A classe Window é definida e herda da classe abcg::OpenGLWindow, que é uma par
 
 ### Variáveis importantes:
 
-`struct Pokemon`: Variável struct que armazena os VBOs, EBOs, nome e outras características de cada Pokémon. Dessa forma, não temos uma variável global para essas definições, mas uma para cada obj.
-
-```c++
-  struct Pokemon {
-    GLuint m_vao{};
-    GLuint m_vbo{};
-    GLuint m_ebo{};
-    std::vector<Vertex> m_vertices;
-    std::vector<GLuint> m_indices;
-    glm::vec4 m_color{};
-    std::string m_name{};
-    bool m_captured{false};
-    glm::vec3 m_position{0, 0, 0};
-  };
-```
-
-
-`m_pokemons_list`: Hashmap que guarda os dados de VAO, VBO, EBO, Vertices e Indices de cada Pokémon existente na lista de arquivos `.obj`.
-```c++
-std::unordered_map<std::string, Pokemon> m_pokemons_list;
-```
-
 `m_modelPaths`: Variável que armazena uma lista dos arquivos .obj que podem ser renderizados na aplicação de forma aleatória.
 ```c++
 std::vector<std::string> m_modelPaths = {
@@ -107,108 +85,6 @@ R: Reinicia o jogo através da chamada de `restartGameThread`
 B: Abre o Pokédex com a listagem de Pokémons capturados a partir de `m_showPokedex`
 
 Também foram definidas as setas e as teclas AWSD para o comando de movimentação do usuário em primeira pessoa.
-
-`onCreate`: Função chamada para inicializar a aplicação. Os shaders são chamados nos arquivos `lookat.frag` e `lookat.vert`. Além disso, no onCreate é aplicada a configuração do nome e as cores dos Pokémons, conforme o trecho de código abaixo:
-
-```c++
-  for (int i = 0; i < 2; i++) {
-    auto color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    std::string name = "";
-
-    if (m_modelPaths[i] == "charmander.obj") {
-      color = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f);
-      name = "Charmander";
-    } else if (m_modelPaths[i] == "Bulbasaur.obj") {
-      color = glm::vec4(0.2f, 0.6f, 0.3f, 1.0f);
-      name = "Bulbasaur";
-    }
-
-    auto const [vertices_pokemon, indices_pokemon] =
-        loadModelFromFile(assetsPath + m_modelPaths[i]);
-
-    GLuint tmp_VAO{};
-    GLuint tmp_VBO{};
-    GLuint tmp_EBO{};
-
-    // Generate VBO
-    abcg::glGenBuffers(1, &tmp_VBO);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
-    abcg::glBufferData(GL_ARRAY_BUFFER,
-                       sizeof(vertices_pokemon.at(0)) * vertices_pokemon.size(),
-                       vertices_pokemon.data(), GL_STATIC_DRAW);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // Generate EBO
-    abcg::glGenBuffers(1, &tmp_EBO);
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
-    abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                       sizeof(indices_pokemon.at(0)) * indices_pokemon.size(),
-                       indices_pokemon.data(), GL_STATIC_DRAW);
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // Create VAO
-    abcg::glGenVertexArrays(1, &tmp_VAO);
-
-    // Bind vertex attributes to current VAO
-    abcg::glBindVertexArray(tmp_VAO);
-
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
-    auto const positionAttribute{
-        abcg::glGetAttribLocation(m_program, "inPosition")};
-    abcg::glEnableVertexAttribArray(positionAttribute);
-    abcg::glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE,
-                                sizeof(Vertex), nullptr);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
-...
-  
-  }
-```
-
-Os VBOs e EBOs para cada Pokémon é definido separadamente através da variável Pokemon apresentada anteriormente na seção do window.hpp. Desta forma, definidos assim dentro do onCreate:
-
-```c++
-...
-    m_pokemons_list[m_modelPaths[i]] =
-        Pokemon{tmp_VAO,         tmp_VBO, tmp_EBO, vertices_pokemon,
-                indices_pokemon, color,   name};
-  }
-```
-
-
-A posição e o tipo de Pokémon que sera renderizado é construído pela lógica abaixo, onde as duas definições são feitas de forma aleatória pela função `rd_poke_position` e `rd_poke_model`, respectivamente:
-
-```c++
-// Definindo posição inicial dos pokemons
-  m_randomEngine.seed(
-      std::chrono::steady_clock::now().time_since_epoch().count());
-
-  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
-  std::uniform_int_distribution<int> rd_poke_model(0, m_modelPaths.size() - 1);
-
-  // inicializando pokemons
-  for (int i = 0; i < m_num_pokemons; ++i) {
-    m_pokemon[i] = m_pokemons_list[m_modelPaths[rd_poke_model(m_randomEngine)]];
-    m_pokemon[i].m_position = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                        rd_poke_position(m_randomEngine));
-  }
-
-```
-
-`loadModelFromFile`: Função de carregamento dos arquivos .obj. O retorno dela é uma tupla com os vertices e indices das posições do objeto (Pokémon ou Pokébola):
-
-```c++
-std::tuple<std::vector<Vertex>, std::vector<GLuint>>
-Window::loadModelFromFile(std::string_view path) {
-
-  .
-  .
-  .
-
-  return std::make_tuple(vertices, indices);
-}
-```
 
 `safeGuard`: Função que garante que os objetos não serão renderizados na posição 0. Foi aplicado 1.5 e -1.5f no x para garantir que não exista nenhum confronto entre objetos e a câmera em primeira pessoa.
 
@@ -243,34 +119,6 @@ Também foi criado um conceito de safeRender na aplicação. A ideia é evitar q
     pokemon.create(m_model, assetsPath, objFile, position);
 
     pokemons_spawned.push_back(pokemon);
-  }
-```
-
-
-`onPaint`: Função que renderiza a cena, utilizando shaders para renderizar os Pokémons, a Pokébola e o chão. A renderização de cada Pokémon acontece conforme o código abaixo:
-
-```c++
-// renderizando cada pokemon
-  for (int i = 0; i < m_num_pokemons; ++i) {
-    auto selectedPokemon = m_pokemon[i];
-
-    abcg::glBindVertexArray(selectedPokemon.m_vao);
-
-    glm::mat4 model{1.0f};
-    // renderizacao condicional caso nao tenha sido capturado
-    if (selectedPokemon.m_captured == false) {
-      model = glm::translate(model, selectedPokemon.m_position);
-      model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
-      model = glm::scale(model, glm::vec3(0.02f));
-
-      abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
-                               &model[0][0]);
-      abcg::glUniform4f(m_colorLocation, selectedPokemon.m_color.r,
-                        selectedPokemon.m_color.g, selectedPokemon.m_color.b,
-                        selectedPokemon.m_color.a);
-      abcg::glDrawElements(GL_TRIANGLES, selectedPokemon.m_indices.size(),
-                           GL_UNSIGNED_INT, nullptr);
-    }
   }
 ```
 
